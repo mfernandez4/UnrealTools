@@ -12,6 +12,10 @@
 /dataSources/
 /dataSources.local.xml
 
+# Visual Studio Code
+.vscode/*
+.vs/*
+
 # Unreal Project files
 /Binaries/
 /Intermediate/
