@@ -1,0 +1,34 @@
+{
+    "Version": "1.1",
+    "Data": {
+        "Source": "i:\\projects - personal\\unreal projects\\unrealtools 5.1\\plugins\\ueditorextension\\intermediate\\build\\win64\\unrealeditor\\development\\ueditorextension\\module.ueditorextension.cpp",
+        "ProvidedModule": "",
+        "PCH": "i:\\projects - personal\\unreal projects\\unrealtools 5.1\\intermediate\\build\\win64\\unrealtoolseditor\\development\\engine\\sharedpch.engine.shadowerrors.inclorderunreal5_0.h.pch",
+        "Includes": [
+            "i:\\projects - personal\\unreal projects\\unrealtools 5.1\\plugins\\ueditorextension\\intermediate\\build\\win64\\unrealeditor\\development\\ueditorextension\\definitions.ueditorextension.h",
+            "i:\\projects - personal\\unreal projects\\unrealtools 5.1\\plugins\\ueditorextension\\intermediate\\build\\win64\\unrealeditor\\inc\\ueditorextension\\uht\\quickassetaction.gen.cpp",
+            "i:\\projects - personal\\unreal projects\\unrealtools 5.1\\plugins\\ueditorextension\\source\\ueditorextension\\public\\quickassetaction.h",
+            "i:\\program files\\epic games\\ue_5.1\\engine\\source\\editor\\blutility\\classes\\assetactionutility.h",
+            "i:\\program files\\epic games\\ue_5.1\\engine\\source\\editor\\blutility\\classes\\editorutilityobject.h",
+            "i:\\program files\\epic games\\ue_5.1\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\blutility\\uht\\editorutilityobject.generated.h",
+            "i:\\program files\\epic games\\ue_5.1\\engine\\source\\editor\\blutility\\private\\blutilitymenuextensions.h",
+            "i:\\program files\\epic games\\ue_5.1\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\blutility\\uht\\blutilitymenuextensions.generated.h",
+            "i:\\program files\\epic games\\ue_5.1\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\blutility\\uht\\assetactionutility.generated.h",
+            "i:\\projects - personal\\unreal projects\\unrealtools 5.1\\plugins\\ueditorextension\\intermediate\\build\\win64\\unrealeditor\\inc\\ueditorextension\\uht\\quickassetaction.generated.h",
+            "i:\\projects - personal\\unreal projects\\unrealtools 5.1\\plugins\\ueditorextension\\intermediate\\build\\win64\\unrealeditor\\inc\\ueditorextension\\uht\\ueditorextension.init.gen.cpp",
+            "i:\\projects - personal\\unreal projects\\unrealtools 5.1\\plugins\\ueditorextension\\source\\ueditorextension\\private\\quickassetaction.cpp",
+            "i:\\projects - personal\\unreal projects\\unrealtools 5.1\\plugins\\ueditorextension\\source\\ueditorextension\\public\\debugheader.h",
+            "i:\\program files\\epic games\\ue_5.1\\engine\\source\\editor\\blutility\\public\\editorutilitylibrary.h",
+            "i:\\program files\\epic games\\ue_5.1\\engine\\source\\runtime\\engine\\classes\\kismet\\blueprintasyncactionbase.h",
+            "i:\\program files\\epic games\\ue_5.1\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\blueprintasyncactionbase.generated.h",
+            "i:\\program files\\epic games\\ue_5.1\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\blutility\\uht\\editorutilitylibrary.generated.h",
+            "i:\\program files\\epic games\\ue_5.1\\engine\\plugins\\editor\\editorscriptingutilities\\source\\editorscriptingutilities\\public\\editorassetlibrary.h",
+            "i:\\program files\\epic games\\ue_5.1\\engine\\plugins\\editor\\editorscriptingutilities\\intermediate\\build\\win64\\unrealeditor\\inc\\editorscriptingutilities\\uht\\editorassetlibrary.generated.h",
+            "i:\\projects - personal\\unreal projects\\unrealtools 5.1\\plugins\\ueditorextension\\source\\ueditorextension\\private\\ueditorextension.cpp",
+            "i:\\projects - personal\\unreal projects\\unrealtools 5.1\\plugins\\ueditorextension\\source\\ueditorextension\\public\\ueditorextension.h",
+            "i:\\projects - personal\\unreal projects\\unrealtools 5.1\\plugins\\ueditorextension\\source\\ueditorextension\\public\\debugheader.cpp"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}
