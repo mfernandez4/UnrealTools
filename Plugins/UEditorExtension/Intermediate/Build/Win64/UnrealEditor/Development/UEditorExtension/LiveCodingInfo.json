@@ -1,0 +1,12 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.UEditorExtension.cpp.obj": [
+			"QuickAssetAction.gen.cpp.obj",
+			"UEditorExtension.init.gen.cpp.obj",
+			"QuickAssetAction.cpp.obj",
+			"UEditorExtension.cpp.obj",
+			"DebugHeader.cpp.obj"
+		]
+	}
+}
