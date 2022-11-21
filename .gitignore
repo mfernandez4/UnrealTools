@@ -20,3 +20,7 @@
 /Binaries/
 /Intermediate/
 /Saved/
+
+# Unreal Engine Plugin files
+/Plugins/UEditorExtension/Intermediate/
+/Plugins/UEditorExtension/Binaries/
