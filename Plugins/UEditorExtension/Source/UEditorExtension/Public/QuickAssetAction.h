@@ -17,7 +17,8 @@ class UEDITOREXTENSION_API UQuickAssetAction : public UAssetActionUtility
 public:
 
 	UFUNCTION(CallInEditor, Category = "QuickAssetAction")
-		static void TestFunction();
-		// static void CreateAsset(UClass* AssetClass, FString AssetName, FString PackagePath);
+	static void DuplicateAssets( int32 NumOfDuplicates );
+	
+	// static void QuickCreateAsset(UClass* AssetClass, FString AssetName, FString PackagePath);
 	
 };

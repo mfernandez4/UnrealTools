@@ -28,7 +28,9 @@ public class UEditorExtension : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "Blutility",
+				"Core",
+				"Blutility",
+				"EditorScriptingUtilities",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -41,7 +43,7 @@ public class UEditorExtension : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				"EditorScriptingUtilities",
+				
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

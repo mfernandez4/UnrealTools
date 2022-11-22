@@ -6,7 +6,7 @@
  * @param Message - The message to print.
  * @param Color - The color to print the message in.
  */
-void Print( const FString& Message, const FColor& Color )
+inline void Print( const FString& Message, const FColor& Color )
 {
 	if ( GEngine )
 	{
@@ -18,7 +18,7 @@ void Print( const FString& Message, const FColor& Color )
  * Log an FString message to the Output Log window.
  * @param Message The message to log to the Output Log window.
  */
-void PrintLog( const FString& Message )
+inline void PrintLog( const FString& Message )
 {
 	UE_LOG( LogTemp, Warning, TEXT( "%s" ), *Message );
 }
