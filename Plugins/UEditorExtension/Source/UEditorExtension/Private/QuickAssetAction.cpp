@@ -6,6 +6,7 @@
 #include "EditorUtilityLibrary.h"
 #include "EditorAssetLibrary.h"
 
+
 /*
  void UQuickAssetAction::QuickCreateAsset(UClass* AssetClass, FString AssetName, FString PackagePath)
 {
@@ -47,7 +48,8 @@ void UQuickAssetAction::DuplicateAssets(int32 NumOfDuplicates)
 	// if NumOfDuplicates is 0 or less, log error and return
 	if (NumOfDuplicates <= 0) 
 	{
-		Print( TEXT("Please enter a number greater than 0"), FColor::Red );
+		// Prompt user with a dialog box to enter a number greater than 0
+		ShowMsgDialog(EAppMsgType::Ok, TEXT("Please enter a VALID number greater than 0"));
 		return;
 	}
 	// Get the selected assets data
@@ -84,12 +86,14 @@ void UQuickAssetAction::DuplicateAssets(int32 NumOfDuplicates)
 
 	if ( Counter > 0 )
 	{
-		// Log the total number of assets duplicated
-		Print( FString::Printf(TEXT("Successfully duplicated %d assets!"), Counter ), FColor::Green );
+		// Notify the user, display the total number of assets duplicated
+		ShowNotifyInfo( FString::Printf(TEXT("Successfully duplicated %d assets!"), Counter ) );
 	}
 	else
 	{
-		Print( TEXT("No assets were duplicated"), FColor::Red );
+		// Notify the user, No assets were duplicated
+		ShowNotifyInfo(TEXT("No assets were duplicated!"));
+		
 	}
 	
 }
