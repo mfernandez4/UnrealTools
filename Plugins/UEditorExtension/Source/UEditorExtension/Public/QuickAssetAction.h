@@ -16,6 +16,10 @@ class UEDITOREXTENSION_API UQuickAssetAction : public UAssetActionUtility
 
 public:
 
+	/**
+	 * Duplicate the selected assets a specified number of times in the same folder as the original asset.
+	 * @param NumOfDuplicates - The number of times to duplicate the selected assets
+	 */
 	UFUNCTION(CallInEditor, Category = "QuickAssetAction")
 	static void DuplicateAssets( int32 NumOfDuplicates );
 	
