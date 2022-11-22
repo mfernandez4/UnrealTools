@@ -70,8 +70,8 @@ inline void ShowNotifyInfo( const FString& Message )
 	FNotificationInfo NotifyInfo( FText::FromString( Message ) );
 	// use large font
 	NotifyInfo.bUseLargeFont = true;
-	// set the notification message to expire after 7 seconds
-	NotifyInfo.FadeOutDuration = 7.0f;
+	// set the notification message to expire after 20 seconds
+	NotifyInfo.FadeOutDuration = 20.0f;
 
 	// add it to the notification list which renders it to the editor
 	FSlateNotificationManager::Get().AddNotification( NotifyInfo );
