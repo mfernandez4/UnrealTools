@@ -16,8 +16,37 @@ public:
 private:
 #pragma region ContentBrowserMenuExtension
 
-	/** Delegate for when the context menu is being built */
+	/**
+	 *
+	 * This function is called when the Content Browser is created.
+	 * It registers the extension with the Content Browser.
+	 * It also registers a delegate, binds it to the content browser
+	 * and adds it to the delegate list.
+	 * 
+	 */
 	void InitCBMenuExtension();
+
+	/**
+	 * Creates a menu entry point in the Content Browser.
+	 * This is the function that is bound to the delegate in InitCBMenuExtension.
+	 * It creates the menu extension and returns it.
+	 * @param SelectedPaths The paths that are selected in the Content Browser.
+	 * @return The menu extension of type: TSharedRef<FExtender> .
+	 */
+	TSharedRef<FExtender> CustomCBMenuExtension( const TArray<FString>& SelectedPaths) const;
+
+	/** 
+	 * This is the function that creates the menu entry point in the content browser.
+	 * It will show the function that is called when the menu entry is clicked.
+	 * @param MenuBuilder The menu builder that is used to create the menu entry.
+	 */
+	void AddCBMenuEntry(class FMenuBuilder& MenuBuilder) const;
+
+	/**
+	 * This is the function that is called when the menu entry point is clicked.
+	 * Safely delete all unused asset under the selected folder in the Content Browser.
+	 */
+	void OnDeleteUnusedAssetsClicked() const;
 
 #pragma endregion 
 };
