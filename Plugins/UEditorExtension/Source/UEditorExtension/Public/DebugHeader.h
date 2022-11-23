@@ -42,7 +42,8 @@ inline void PrintLog( const FString& Message )
  *	@param bShowMsgAsWarning - Whether or not to show the message as a warning.
  *	@return - The result of the message dialog.
  */
-inline EAppReturnType::Type ShowMsgDialog( EAppMsgType::Type MsgType, const FString& Message, bool bShowMsgAsWarning = true )
+inline EAppReturnType::Type ShowMsgDialog( EAppMsgType::Type MsgType, const FString& Message,
+	bool bShowMsgAsWarning = true )
 {
 	// check if we should show the message as a warning
 	if ( bShowMsgAsWarning )

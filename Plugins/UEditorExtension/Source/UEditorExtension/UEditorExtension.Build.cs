@@ -32,7 +32,8 @@ public class UEditorExtension : ModuleRules
 				"Blutility",
 				"EditorScriptingUtilities",
 				"Niagara",
-				"UMG"
+				"UMG",
+				"UnrealEd",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

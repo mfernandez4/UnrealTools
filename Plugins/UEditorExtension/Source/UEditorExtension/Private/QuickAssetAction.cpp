@@ -5,6 +5,7 @@
 #include "DebugHeader.h"
 #include "EditorUtilityLibrary.h"
 #include "EditorAssetLibrary.h"
+#include "ObjectTools.h"
 
 
 /*
@@ -42,6 +43,7 @@
 }
 */
 
+#pragma region DuplicateAssets
 
 void UQuickAssetAction::DuplicateAssets(int32 NumOfDuplicates)
 {
@@ -76,7 +78,7 @@ void UQuickAssetAction::DuplicateAssets(int32 NumOfDuplicates)
 			if( UEditorAssetLibrary::DuplicateAsset( SourceAssetPath, NewPathName ) )
 			{
 				// Save the duplicated asset
-				UEditorAssetLibrary::SaveAsset(NewPathName, false); 
+				UEditorAssetLibrary::SaveAsset(NewPathName, false);
 				++Counter;
 				Print( FString::Printf(TEXT("Duplicated %s as %s"), *SourceAssetName, *NewDuplicatedAssetName), FColor::Green );
 				PrintLog( FString::Printf(TEXT("New Duplicated Asset: %s"), *NewPathName) );
@@ -97,8 +99,10 @@ void UQuickAssetAction::DuplicateAssets(int32 NumOfDuplicates)
 	}
 	
 }
+#pragma endregion
 
 
+#pragma region RenameAssets
 void UQuickAssetAction::AddPrefixes()
 {
 	// get the selected asset objects
@@ -175,3 +179,43 @@ void UQuickAssetAction::AddPrefixes()
 		ShowNotifyInfo(TEXT("No assets were renamed!"));
 	}
 }
+#pragma endregion
+
+void UQuickAssetAction::RemoveUnusedAssets()
+{
+	// Get Selected Assets Data
+	TArray<FAssetData>SelectedAssetsData = UEditorUtilityLibrary::GetSelectedAssetData();
+	// Container to hold the unused assets
+	TArray<FAssetData>UnusedAssetsData;
+
+	for( const FAssetData& SelectedAssetData : SelectedAssetsData )
+	{
+		// Get the selected asset's references
+		TArray<FString> AssetReferences = UEditorAssetLibrary::FindPackageReferencersForAsset( SelectedAssetData.GetObjectPathString() );
+
+		// if the asset has no references, add it to the unused assets container
+		if( AssetReferences.Num() == 0 )
+		{
+			// Add the unused asset to the container
+			UnusedAssetsData.Add( SelectedAssetData );
+		}
+	}
+
+	// check the number of unused assets, if there are none notify the user, then return
+	// else, delete the unused assets
+	if( UnusedAssetsData.Num() == 0 )
+	{
+		// Notify the user, No assets were deleted
+		ShowMsgDialog( EAppMsgType::Ok ,TEXT("No unused assets were found in the selected assets!"), false );
+		return;
+	}
+	
+	// Delete the unused assets
+	const int32 NumOfAssetsDeleted = ObjectTools::DeleteAssets( UnusedAssetsData );
+
+	if(NumOfAssetsDeleted == 0) return;
+	
+	// Notify the user, display the total number of assets deleted
+	ShowNotifyInfo( FString::Printf(TEXT("Successfully deleted %d unused assets!"), NumOfAssetsDeleted) );
+}
+
