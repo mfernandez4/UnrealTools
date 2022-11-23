@@ -60,6 +60,9 @@ public:
 	void RemoveUnusedAssets();
 
 private:
+	void FixUpRedirectors() const;
+	
+private:
 	// mapping of asset class to the asset prefix
 	TMap<UClass*, FString> PrefixMap =
 		{

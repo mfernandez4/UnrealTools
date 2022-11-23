@@ -34,6 +34,7 @@ public class UEditorExtension : ModuleRules
 				"Niagara",
 				"UMG",
 				"UnrealEd",
+				"AssetTools",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
