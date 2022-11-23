@@ -12,4 +12,12 @@ public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+
+private:
+#pragma region ContentBrowserMenuExtension
+
+	/** Delegate for when the context menu is being built */
+	void InitCBMenuExtension();
+
+#pragma endregion 
 };

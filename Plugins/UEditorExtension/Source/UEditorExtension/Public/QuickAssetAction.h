@@ -44,21 +44,35 @@ public:
 	 */
 	UFUNCTION(CallInEditor, Category = "QuickAssetAction")
 	static void DuplicateAssets( int32 NumOfDuplicates );
+
 	
 	// static void QuickCreateAsset(UClass* AssetClass, FString AssetName, FString PackagePath);
 
+	
 	/**
 	 * Adds prefixes and suffixes to the selected assets based on a TMap of UClasses and their respective prefixes/suffixes.
 	 */
 	UFUNCTION(CallInEditor, Category = "QuickAssetAction")
 	void AddPrefixes();
 
+	
+	/**
+	 * Rename the selected assets
+	 * @param SearchString - the string to search for
+	 * @param ReplaceString - the string to replace the SearchString with
+	 * @param SearchCase - should the letter case be ignored?
+	 **/
+	UFUNCTION(CallInEditor)
+	static void RenameSelectedAssets(FString SearchString, FString ReplaceString, ESearchCase::Type SearchCase);
+
+	
 	/**
 	 * Checks selected assets that aren't being used in the project and prompts the user to delete them.
 	 */
 	UFUNCTION(CallInEditor, Category = "QuickAssetAction")
 	void RemoveUnusedAssets();
 
+	
 private:
 	void FixUpRedirectors() const;
 	

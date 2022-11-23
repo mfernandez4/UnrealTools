@@ -22,7 +22,8 @@ public:
 	 * @param ReplaceString - the string to replace the SearchString with
 	 * @param SearchCase - should the letter case be ignored?
 	 **/
-	UFUNCTION(CallInEditor)
+	// UFUNCTION(CallInEditor)
+	UFUNCTION()
 	void RenameSelectedAssets(FString SearchString, FString ReplaceString, ESearchCase::Type SearchCase);
 
 private:

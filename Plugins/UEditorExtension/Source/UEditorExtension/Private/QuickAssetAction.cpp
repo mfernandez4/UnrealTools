@@ -183,6 +183,45 @@ void UQuickAssetAction::AddPrefixes()
 		ShowNotifyInfo(TEXT("No assets were renamed!"));
 	}
 }
+
+
+void UQuickAssetAction::RenameSelectedAssets(FString SearchString, FString ReplaceString, ESearchCase::Type SearchCase)
+{
+	// Check if something needs to be done
+	if (SearchString.IsEmpty() || SearchString.Equals(ReplaceString, SearchCase))
+	{
+		return;
+	}
+	
+	// Get the selected objects
+	TArray<UObject*> SelectedObjects = UEditorUtilityLibrary::GetSelectedAssets();
+	
+	uint32 Counter = 0;
+
+	// Check each Asset if it needs to be renamed
+	for (UObject* SelectedObject : SelectedObjects)
+	{
+		// Check if SelectedObject pointer is not nullptr
+		if (SelectedObject != nullptr)
+		{
+			// Get Asset name
+			FString AssetName = SelectedObject->GetName();
+
+			// Check if Asset name contains SearchString
+			if (AssetName.Contains(SearchString, SearchCase))
+			{
+				// Form new name and store in a variable
+				FString NewName = AssetName.Replace(*SearchString, *ReplaceString, SearchCase);
+				UEditorUtilityLibrary::RenameAsset(SelectedObject, NewName);
+				
+				// increment counter variable
+				Counter++;
+			}
+		}
+	}
+
+	ShowNotifyInfo( FString::Printf(TEXT("Successfully renamed %d assets!"), Counter ) );
+}
 #pragma endregion
 
 
