@@ -33,7 +33,7 @@ private:
 	 * @param SelectedPaths The paths that are selected in the Content Browser.
 	 * @return The menu extension of type: TSharedRef<FExtender> .
 	 */
-	TSharedRef<FExtender> CustomCBMenuExtension( const TArray<FString>& SelectedPaths) const;
+	TSharedRef<FExtender> CustomCBMenuExtension( const TArray<FString>& SelectedPaths);
 
 	/** 
 	 * This is the function that creates the menu entry point in the content browser.
@@ -47,6 +47,11 @@ private:
 	 * Safely delete all unused asset under the selected folder in the Content Browser.
 	 */
 	void OnDeleteUnusedAssetsClicked() const;
+
+	void FixUpRedirectors() const;
+
+	/** Holds the folders that were selected in the content browser  */
+	TArray<FString> SelectedFolderPaths;
 
 #pragma endregion 
 };

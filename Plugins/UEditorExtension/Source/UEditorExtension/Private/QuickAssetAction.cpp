@@ -55,7 +55,7 @@ void UQuickAssetAction::DuplicateAssets(int32 NumOfDuplicates)
 	if (NumOfDuplicates <= 0) 
 	{
 		// Prompt user with a dialog box to enter a number greater than 0
-		ShowMsgDialog(EAppMsgType::Ok, TEXT("Please enter a VALID number greater than 0"));
+		DebugHeader::ShowMsgDialog(EAppMsgType::Ok, TEXT("Please enter a VALID number greater than 0"));
 		return;
 	}
 	// Get the selected assets data
@@ -84,8 +84,8 @@ void UQuickAssetAction::DuplicateAssets(int32 NumOfDuplicates)
 				// Save the duplicated asset
 				UEditorAssetLibrary::SaveAsset(NewPathName, false);
 				++Counter;
-				Print( FString::Printf(TEXT("Duplicated %s as %s"), *SourceAssetName, *NewDuplicatedAssetName), FColor::Green );
-				PrintLog( FString::Printf(TEXT("New Duplicated Asset: %s"), *NewPathName) );
+				DebugHeader::Print( FString::Printf(TEXT("Duplicated %s as %s"), *SourceAssetName, *NewDuplicatedAssetName), FColor::Green );
+				DebugHeader::PrintLog( FString::Printf(TEXT("New Duplicated Asset: %s"), *NewPathName) );
 			}
 		}
 	}
@@ -93,12 +93,12 @@ void UQuickAssetAction::DuplicateAssets(int32 NumOfDuplicates)
 	if ( Counter > 0 )
 	{
 		// Notify the user, display the total number of assets duplicated
-		ShowNotifyInfo( FString::Printf(TEXT("Successfully duplicated %d assets!"), Counter ) );
+		DebugHeader::ShowNotifyInfo( FString::Printf(TEXT("Successfully duplicated %d assets!"), Counter ) );
 	}
 	else
 	{
 		// Notify the user, No assets were duplicated
-		ShowNotifyInfo(TEXT("No assets were duplicated!"));
+		DebugHeader::ShowNotifyInfo(TEXT("No assets were duplicated!"));
 		
 	}
 	
@@ -127,7 +127,7 @@ void UQuickAssetAction::AddPrefixes()
 		// then continue to the next object
 		if ( !PrefixFound || PrefixFound->IsEmpty() )
 		{
-			ShowNotifyInfo(FString::Printf(TEXT("Failed to find a prefix for the selected asset's class, %s"),
+			DebugHeader::ShowNotifyInfo(FString::Printf(TEXT("Failed to find a prefix for the selected asset's class, %s"),
 				*SelectedObject->GetClass()->GetName()) );
 			continue;
 		}
@@ -138,13 +138,13 @@ void UQuickAssetAction::AddPrefixes()
 		// if the selected object's name already starts with the prefix, continue to the next object
 		if ( OldName.StartsWith(*PrefixFound) ) 
 		{
-			ShowNotifyInfo(FString::Printf(TEXT("The selected asset's name, %s, already starts with the prefix, %s"),
+			DebugHeader::ShowNotifyInfo(FString::Printf(TEXT("The selected asset's name, %s, already starts with the prefix, %s"),
 				*OldName, **PrefixFound) );
 			continue;
 		}
 		else if( OldName.EndsWith(*PrefixFound) ) // if the selected object name already has the suffix, continue to the next object
 		{
-			ShowNotifyInfo(FString::Printf(TEXT("The selected asset's name, %s, already has the suffix, %s"),
+			DebugHeader::ShowNotifyInfo(FString::Printf(TEXT("The selected asset's name, %s, already has the suffix, %s"),
 				*OldName, **PrefixFound) );
 			continue;
 		}
@@ -176,11 +176,11 @@ void UQuickAssetAction::AddPrefixes()
 	// Notify the user, display the total number of assets renamed
 	if( Counter > 0 )
 	{
-		ShowNotifyInfo( FString::Printf(TEXT("Successfully renamed %d assets!"), Counter ) );
+		DebugHeader::ShowNotifyInfo( FString::Printf(TEXT("Successfully renamed %d assets!"), Counter ) );
 	}
 	else
 	{
-		ShowNotifyInfo(TEXT("No assets were renamed!"));
+		DebugHeader::ShowNotifyInfo(TEXT("No assets were renamed!"));
 	}
 }
 
@@ -220,7 +220,7 @@ void UQuickAssetAction::RenameSelectedAssets(FString SearchString, FString Repla
 		}
 	}
 
-	ShowNotifyInfo( FString::Printf(TEXT("Successfully renamed %d assets!"), Counter ) );
+	DebugHeader::ShowNotifyInfo( FString::Printf(TEXT("Successfully renamed %d assets!"), Counter ) );
 }
 #pragma endregion
 
@@ -255,7 +255,7 @@ void UQuickAssetAction::RemoveUnusedAssets()
 	if( UnusedAssetsData.Num() == 0 )
 	{
 		// Notify the user, No assets were deleted
-		ShowMsgDialog( EAppMsgType::Ok ,TEXT("No unused assets were found in the selected assets!"), false );
+		DebugHeader::ShowMsgDialog( EAppMsgType::Ok ,TEXT("No unused assets were found in the selected assets!"), false );
 		return;
 	}
 	
@@ -265,7 +265,7 @@ void UQuickAssetAction::RemoveUnusedAssets()
 	if(NumOfAssetsDeleted == 0) return;
 	
 	// Notify the user, display the total number of assets deleted
-	ShowNotifyInfo( FString::Printf(TEXT("Successfully deleted %d unused assets!"), NumOfAssetsDeleted) );
+	DebugHeader::ShowNotifyInfo( FString::Printf(TEXT("Successfully deleted %d unused assets!"), NumOfAssetsDeleted) );
 }
 #pragma endregion
 
