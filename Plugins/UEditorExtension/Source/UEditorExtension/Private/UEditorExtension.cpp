@@ -196,11 +196,11 @@ void FUEditorExtensionModule::OnDeleteUnusedAssetsClicked() const
 	*/
 
 	// get the assets in the selected folder
-	const TArray<FString> AssetPathNames = UEditorAssetLibrary::ListAssets( SelectedFolderPaths[0] );
+	const TArray<FString> PathNames = UEditorAssetLibrary::ListAssets( SelectedFolderPaths[0] );
 
 	// check if the folder is empty,
 	// if so, then notify the user that there are no assets in the folder
-	if( AssetPathNames.Num() == 0 )
+	if( PathNames.Num() == 0 )
 	{
 		DebugHeader::ShowMsgDialog( EAppMsgType::Ok, TEXT("No assets found in the selected folder."), false );
 		return;
@@ -209,7 +209,7 @@ void FUEditorExtensionModule::OnDeleteUnusedAssetsClicked() const
 	// notify user of the number of assets found in the folder
 	const EAppReturnType::Type UserResponse = DebugHeader::ShowMsgDialog(
 		EAppMsgType::YesNo,
-		FString::Printf( TEXT("Found %d assets in the selected folder. Do you want to delete them?"), AssetPathNames.Num() ),
+		FString::Printf( TEXT("Found %d assets in the selected folder. Do you want to delete them?"), PathNames.Num() ),
 		false
 	);
 
@@ -223,7 +223,7 @@ void FUEditorExtensionModule::OnDeleteUnusedAssetsClicked() const
 	FixUpRedirectors();
 	
 	// loop through the asset path names and get the asset data
-	for( const FString& AssetPathName : AssetPathNames )
+	for( const FString& AssetPathName : PathNames )
 	{
 		// skip root folders, like Developers, Collections, etc.
 		if( AssetPathName.Contains(TEXT("Developers")) ||
@@ -312,8 +312,75 @@ void FUEditorExtensionModule::FixUpRedirectors() const
 
 void FUEditorExtensionModule::OnDeleteEmptyFoldersClicked() const
 {
-	// debug, show message "Delete Unused Assets Button Clicked"
-	DebugHeader::ShowNotifyInfo(TEXT("Delete Empty Folders Button Clicked"));
+	// // debug, show message "Delete Unused Assets Button Clicked"
+	// DebugHeader::ShowNotifyInfo(TEXT("Delete Empty Folders Button Clicked"));
+
+	// Fix up the redirectors before deleting the empty folders
+	FixUpRedirectors();
+
+	// List out all the assets including directories with ListAssets()
+	const TArray<FString> FolderPathNames = UEditorAssetLibrary::ListAssets(SelectedFolderPaths[0], true, true);
+	uint32 Counter = 0;
+	
+	// Filter out the directories, and check if it exists with DoesDirectoryExist()
+	FString DirectoryPaths;
+	TArray<FString> EmptyDirectories;
+	for (const FString& DirectoryPath : FolderPathNames)
+	{
+		// skip root folders, like Developers, Collections, etc.
+		if( DirectoryPath.Contains(TEXT("Developers")) ||
+			DirectoryPath.Contains(TEXT("Collections")) ||
+			DirectoryPath.Contains(TEXT("__ExternalActors__")) ||
+			DirectoryPath.Contains(TEXT("__ExternalObjects__"))
+			)
+		{
+			continue;
+		}
+		
+		if ( !UEditorAssetLibrary::DoesDirectoryExist(DirectoryPath) ) continue;
+
+		// Check if directory is empty with DoesDirectoryHaveAssets()
+		if ( !UEditorAssetLibrary::DoesDirectoryHaveAssets(DirectoryPath) )
+		{
+			// Add the empty directory path to an FString to print out later
+			DirectoryPaths.Append( FString::Printf(TEXT("%s\n"), *DirectoryPath) );
+
+			// Add the empty directory to the array
+			EmptyDirectories.Add(DirectoryPath);
+		}
+	}
+
+	if( EmptyDirectories.Num() == 0 )
+	{
+		DebugHeader::ShowMsgDialog( EAppMsgType::Ok, TEXT("No empty folders found in the selected folder."), false );
+		return;
+	}
+
+	// Ask the user if they want to delete the empty folders, and store the response
+	const EAppReturnType::Type UserResponse =
+		DebugHeader::ShowMsgDialog( EAppMsgType::OkCancel,
+		FString::Printf( TEXT("Are you sure you want to delete the empty folders? \n%s\n Please, confirm your selection."), *DirectoryPaths ),
+		false );
+
+	// Check if the user response
+	if( UserResponse == EAppReturnType::Cancel ) return;
+	
+	if( UserResponse == EAppReturnType::Ok )
+	{
+		// Loop through the empty directories and delete them
+		for (const FString& EmptyDirectory : EmptyDirectories)
+		{
+			UEditorAssetLibrary::DeleteDirectory(EmptyDirectory)
+			? Counter++ : DebugHeader::ShowNotifyInfo( FString::Printf(TEXT("Failed to delete %s"), *EmptyDirectory) );
+		}
+	}
+
+	// Notify the user, display the total number of folders deleted
+	if( Counter > 0 )
+	{
+		DebugHeader::ShowNotifyInfo(FString::Printf(TEXT("Delete %d empty folders!"), Counter));
+	}
+
 }
 
 
