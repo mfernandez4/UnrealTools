@@ -57,7 +57,12 @@ void FUEditorExtensionModule::InitCBMenuExtension()
 	// ContentBrowserMenuExtender.Add( FContentBrowserMenuExtender_SelectedPaths::CreateRaw
 	// 	(this, &FUEditorExtensionModule::DeleteUnusedAssetsMenuExtension) );
 
-
+	// // create a new delegate
+	// FContentBrowserMenuExtender_SelectedPaths DeleteUnusedAssetsMenuDelegate;
+	//
+	// // bind the delegate and add it to the array
+	// ContentBrowserMenuExtender.Add( FContentBrowserMenuExtender_SelectedPaths::CreateRaw
+	// 	(this, &FUEditorExtensionModule::DeleteUnusedAssetsMenuExtension) );
 
 	
 	/*
@@ -97,7 +102,7 @@ TSharedRef<FExtender> FUEditorExtensionModule::SweetDropdownMenuExtension(const 
 }
 
 // Defines the details for the custom submenu / dropdown menu entry
-void FUEditorExtensionModule::AddSweetSubMenuEntry(FMenuBuilder& MenuBuilder) const
+void FUEditorExtensionModule::AddSweetSubMenuEntry( FMenuBuilder& MenuBuilder ) const
 {
 	// Title of the menu section
 	const TAttribute<FText> &InHeadingText = FText::FromString("Sweet Context Operations");
@@ -107,15 +112,40 @@ void FUEditorExtensionModule::AddSweetSubMenuEntry(FMenuBuilder& MenuBuilder) co
 	MenuBuilder.AddSubMenu(
 	FText::FromString( TEXT("Sweet Asset Actions") ), // The title text that will appear in the menu
 	FText::FromString( TEXT("A List of Quick Asset Actions bundled with the Sweet Editor Extension Plug-in") ), // The text that will appear in the tooltip
-	FNewMenuDelegate::CreateRaw( this, &FUEditorExtensionModule::AddDeleteUnusedAssetsMenuEntry ),
+	FNewMenuDelegate::CreateRaw( this, &FUEditorExtensionModule::AddSweetMenuEntries ),
 	false,
 	FSlateIcon(),
 	true,
 	FName("SweetAssetActions")
-		);
+	);
+
 }
 
-// Defines the position for inserting custom menu entry
+// Defines the details for the custom menu entry
+void FUEditorExtensionModule::AddSweetMenuEntries( FMenuBuilder& MenuBuilder ) const
+{
+	// Add a new menu entry for Delete Unused Assets
+	MenuBuilder.AddMenuEntry
+	(
+		FText::FromString( TEXT("Delete Unused Assets") ), // The title text that will appear in the menu
+		FText::FromString( TEXT("Safely delete all unused asset under the selected folder.") ), // The text that will appear in the tooltip
+		FSlateIcon(), // No icon, we can also use FSlateIcon(FEditorStyle::GetStyleSetName(), "ClassIcon.Actor")
+		FUIAction(FExecuteAction::CreateRaw( this, &FUEditorExtensionModule::OnDeleteUnusedAssetsClicked) ), // The function that will be called when the menu is clicked
+		FName("DeleteUnusedAssets")
+	);
+
+	// Add a new menu entry Delete Empty Folders
+	MenuBuilder.AddMenuEntry
+	(
+		FText::FromString( TEXT("Delete Empty Folders") ), // The title text that will appear in the menu
+		FText::FromString( TEXT("Safely delete all empty folders in selection.") ), // The text that will appear in the tooltip
+		FSlateIcon(), // No icon, we can also use FSlateIcon(FEditorStyle::GetStyleSetName(), "ClassIcon.Actor")
+		FUIAction(FExecuteAction::CreateRaw( this, &FUEditorExtensionModule::OnDeleteEmptyFoldersClicked) ), // The function that will be called when the menu is clicked
+		FName("DeleteEmptyFolders")
+	);
+}
+
+// Defines the position for inserting custom menu entry ** CURRENTLY NOT BEING USED **
 TSharedRef<FExtender> FUEditorExtensionModule::DeleteUnusedAssetsMenuExtension(const TArray<FString>& SelectedPaths)
 {
 	// Create a new extender
@@ -130,7 +160,7 @@ TSharedRef<FExtender> FUEditorExtensionModule::DeleteUnusedAssetsMenuExtension(c
 			FName("Delete"), // The name of the menu-button where we want to insert our new menu
 			EExtensionHook::After, // Insert our menu after the menu-button
 			TSharedPtr<FUICommandList>(), // This can be used to add keyboard shortcuts to the menu
-			FMenuExtensionDelegate::CreateRaw(this, &FUEditorExtensionModule::AddDeleteUnusedAssetsMenuEntry) // Second delegate, defines the details for the menu entry
+			FMenuExtensionDelegate::CreateRaw(this, &FUEditorExtensionModule::AddSweetMenuEntries) // Second delegate, defines the details for the menu entry
 		);
 
 		// store the folders that were selected
@@ -140,21 +170,6 @@ TSharedRef<FExtender> FUEditorExtensionModule::DeleteUnusedAssetsMenuExtension(c
 
 	// return the newly created menu extension
 	return MenuExtender;
-}
-
-// Defines the details for the custom menu entry
-void FUEditorExtensionModule::AddDeleteUnusedAssetsMenuEntry( FMenuBuilder& MenuBuilder ) const
-{
-	// Add a new menu entry
-	MenuBuilder.AddMenuEntry
-	(
-		FText::FromString( TEXT("Delete Unused Assets") ), // The title text that will appear in the menu
-		FText::FromString( TEXT("Safely delete all unused asset under the selected folder.") ), // The text that will appear in the tooltip
-		FSlateIcon(
-	
-		), // No icon, we can also use FSlateIcon(FEditorStyle::GetStyleSetName(), "ClassIcon.Actor")
-		FUIAction(FExecuteAction::CreateRaw( this, &FUEditorExtensionModule::OnDeleteUnusedAssetsClicked) ) // The function that will be called when the menu is clicked
-	);
 }
 
 // The function that will be called when the menu is clicked
@@ -295,6 +310,11 @@ void FUEditorExtensionModule::FixUpRedirectors() const
 	
 }
 
+void FUEditorExtensionModule::OnDeleteEmptyFoldersClicked() const
+{
+	// debug, show message "Delete Unused Assets Button Clicked"
+	DebugHeader::ShowNotifyInfo(TEXT("Delete Empty Folders Button Clicked"));
+}
 
 
 #pragma endregion

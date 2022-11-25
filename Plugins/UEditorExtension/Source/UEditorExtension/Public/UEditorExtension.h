@@ -26,7 +26,25 @@ private:
 	 * 
 	 */
 	void InitCBMenuExtension();
+	
 
+	/**
+	 * Creates a menu entry point in the Content Browser.
+	 * This is the function that is bound to the delegate in InitCBMenuExtension.
+	 * It creates the menu extension and returns it.
+	 * @param SelectedPaths The paths that are selected in the Content Browser.
+	 * @return The menu extension of type: TSharedRef<FExtender> .
+	 */
+	TSharedRef<FExtender> SweetDropdownMenuExtension(const TArray<FString>& SelectedPaths);
+
+	/** 
+	 * This is the function that creates the menu entry point in the content browser.
+	 * It will show the function that is called when the menu entry is clicked.
+	 * @param MenuBuilder The menu builder that is used to create the submenu entry.
+	 */
+	void AddSweetSubMenuEntry(class FMenuBuilder& MenuBuilder) const;
+
+	
 	/**
 	 * Creates a menu entry point in the Content Browser.
 	 * This is the function that is bound to the delegate in InitCBMenuExtension.
@@ -41,7 +59,7 @@ private:
 	 * It will show the function that is called when the menu entry is clicked.
 	 * @param MenuBuilder The menu builder that is used to create the menu entry.
 	 */
-	void AddDeleteUnusedAssetsMenuEntry(class FMenuBuilder& MenuBuilder) const;
+	void AddSweetMenuEntries(class FMenuBuilder& MenuBuilder) const;
 
 	/**
 	 * This is the function that is called when the menu entry point is clicked.
@@ -58,9 +76,12 @@ private:
 	/** Holds the folders that were selected in the content browser  */
 	TArray<FString> SelectedFolderPaths;
 
-	void AddSweetSubMenuEntry(class FMenuBuilder& MenuBuilder) const;
+	/**
+		 * This is the function that is called when the menu entry point is clicked.
+		 * Safely delete all unused asset under the selected folder in the Content Browser.
+		 */
+	void OnDeleteEmptyFoldersClicked() const;
 
-	TSharedRef<FExtender> SweetDropdownMenuExtension(const TArray<FString>& SelectedPaths);
 
 #pragma endregion 
 };

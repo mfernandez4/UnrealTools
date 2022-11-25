@@ -73,8 +73,12 @@ namespace DebugHeader
 		FNotificationInfo NotifyInfo(FText::FromString(Message));
 		// use large font
 		NotifyInfo.bUseLargeFont = true;
-		// set the notification message to expire after 20 seconds
-		NotifyInfo.FadeOutDuration = 20.0f;
+		// set the notification message to fadeIn to complete within 5 seconds
+		NotifyInfo.FadeInDuration = 2.0f;
+		// set the notification to expire after 20 seconds before fading out
+		NotifyInfo.ExpireDuration = 20.0f;
+		// set the notification message to fadeout after 5 seconds
+		NotifyInfo.FadeOutDuration = 5.0f;
 
 		// add it to the notification list which renders it to the editor
 		FSlateNotificationManager::Get().AddNotification(NotifyInfo);
