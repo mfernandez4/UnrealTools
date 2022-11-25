@@ -16,6 +16,7 @@ public:
 private:
 #pragma region ContentBrowserMenuExtension
 
+	
 	/**
 	 *
 	 * This function is called when the Content Browser is created.
@@ -33,14 +34,14 @@ private:
 	 * @param SelectedPaths The paths that are selected in the Content Browser.
 	 * @return The menu extension of type: TSharedRef<FExtender> .
 	 */
-	TSharedRef<FExtender> CustomCBMenuExtension( const TArray<FString>& SelectedPaths);
+	TSharedRef<FExtender> DeleteUnusedAssetsMenuExtension( const TArray<FString>& SelectedPaths);
 
 	/** 
 	 * This is the function that creates the menu entry point in the content browser.
 	 * It will show the function that is called when the menu entry is clicked.
 	 * @param MenuBuilder The menu builder that is used to create the menu entry.
 	 */
-	void AddCBMenuEntry(class FMenuBuilder& MenuBuilder) const;
+	void AddDeleteUnusedAssetsMenuEntry(class FMenuBuilder& MenuBuilder) const;
 
 	/**
 	 * This is the function that is called when the menu entry point is clicked.
@@ -48,10 +49,18 @@ private:
 	 */
 	void OnDeleteUnusedAssetsClicked() const;
 
+	/**
+	 * Removes redirectors from the assets in the content folder
+	 * to allow assets to be safely deleted without breaking references.
+	 */
 	void FixUpRedirectors() const;
 
 	/** Holds the folders that were selected in the content browser  */
 	TArray<FString> SelectedFolderPaths;
+
+	void AddSweetSubMenuEntry(class FMenuBuilder& MenuBuilder) const;
+
+	TSharedRef<FExtender> SweetDropdownMenuExtension(const TArray<FString>& SelectedPaths);
 
 #pragma endregion 
 };

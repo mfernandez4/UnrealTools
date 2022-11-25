@@ -40,9 +40,26 @@ void FUEditorExtensionModule::InitCBMenuExtension()
 	TArray<FContentBrowserMenuExtender_SelectedPaths>& ContentBrowserMenuExtender =
 	ContentBrowserModule.GetAllPathViewContextMenuExtenders();
 
-	// create a new delegate
-	FContentBrowserMenuExtender_SelectedPaths CustomCBMenuDelegate;
 
+	
+	// create new delegate
+	FContentBrowserMenuExtender_SelectedPaths SweetDropdownMenuDelegate;
+
+	ContentBrowserMenuExtender.Add( FContentBrowserMenuExtender_SelectedPaths::CreateRaw
+		(this, &FUEditorExtensionModule::SweetDropdownMenuExtension) );
+
+
+	
+	// // create a new delegate
+	// FContentBrowserMenuExtender_SelectedPaths DeleteUnusedAssetsMenuDelegate;
+	//
+	// // bind the delegate and add it to the array
+	// ContentBrowserMenuExtender.Add( FContentBrowserMenuExtender_SelectedPaths::CreateRaw
+	// 	(this, &FUEditorExtensionModule::DeleteUnusedAssetsMenuExtension) );
+
+
+
+	
 	/*
 	// bind the delegate to the function we want to call
 	CustomCBMenuDelegate.BindRaw( this, &FUEditorExtensionModule::CustomCBMenuExtension );
@@ -51,13 +68,11 @@ void FUEditorExtensionModule::InitCBMenuExtension()
 	// add the delegate to the array
 	ContentBrowserMenuExtender.Add( CustomCBMenuDelegate );
 	*/
-
-	// bind the delegate and add it to the array
-	ContentBrowserMenuExtender.Add( FContentBrowserMenuExtender_SelectedPaths::CreateRaw
-		(this, &FUEditorExtensionModule::CustomCBMenuExtension) );
+	
 }
 
-TSharedRef<FExtender> FUEditorExtensionModule::CustomCBMenuExtension(const TArray<FString>& SelectedPaths)
+// Defines the position for inserting custom menu entry
+TSharedRef<FExtender> FUEditorExtensionModule::SweetDropdownMenuExtension(const TArray<FString>& SelectedPaths)
 {
 	// Create a new extender
 	TSharedRef<FExtender> MenuExtender = MakeShareable( new FExtender() );
@@ -67,10 +82,55 @@ TSharedRef<FExtender> FUEditorExtensionModule::CustomCBMenuExtension(const TArra
 	{
 		// Create a new menu extension
 		MenuExtender->AddMenuExtension(
+			// Extension hook, position to insert the menu entry
+			FName("PathContextBulkOperations"), // The name of the menu-button where we want to insert our new menu
+			EExtensionHook::Before, // Insert our menu after the menu-button
+			TSharedPtr<FUICommandList>(), // This can be used to add keyboard shortcuts to the menu
+			FMenuExtensionDelegate::CreateRaw(this, &FUEditorExtensionModule::AddSweetSubMenuEntry) // Second delegate, defines the details for the menu entry
+		);
+
+		// store the folders that were selected
+		SelectedFolderPaths = SelectedPaths;
+	}
+	
+	return MenuExtender;
+}
+
+// Defines the details for the custom submenu / dropdown menu entry
+void FUEditorExtensionModule::AddSweetSubMenuEntry(FMenuBuilder& MenuBuilder) const
+{
+	// Title of the menu section
+	const TAttribute<FText> &InHeadingText = FText::FromString("Sweet Context Operations");
+	MenuBuilder.BeginSection( FName("SweetOperations"), InHeadingText );
+	
+	// Add a new menu entry
+	MenuBuilder.AddSubMenu(
+	FText::FromString( TEXT("Sweet Asset Actions") ), // The title text that will appear in the menu
+	FText::FromString( TEXT("A List of Quick Asset Actions bundled with the Sweet Editor Extension Plug-in") ), // The text that will appear in the tooltip
+	FNewMenuDelegate::CreateRaw( this, &FUEditorExtensionModule::AddDeleteUnusedAssetsMenuEntry ),
+	false,
+	FSlateIcon(),
+	true,
+	FName("SweetAssetActions")
+		);
+}
+
+// Defines the position for inserting custom menu entry
+TSharedRef<FExtender> FUEditorExtensionModule::DeleteUnusedAssetsMenuExtension(const TArray<FString>& SelectedPaths)
+{
+	// Create a new extender
+	TSharedRef<FExtender> MenuExtender = MakeShareable( new FExtender() );
+
+	// Check if the selected paths is valid or greater than 0
+	if( SelectedPaths.Num() > 0 )
+	{
+		// Create a new menu extension
+		MenuExtender->AddMenuExtension(
+			// Extension hook, position to insert the menu entry
 			FName("Delete"), // The name of the menu-button where we want to insert our new menu
 			EExtensionHook::After, // Insert our menu after the menu-button
-			TSharedPtr<FUICommandList>(), // Empty command list, this can be used to add keyboard shortcuts to the menu
-			FMenuExtensionDelegate::CreateRaw(this, &FUEditorExtensionModule::AddCBMenuEntry)
+			TSharedPtr<FUICommandList>(), // This can be used to add keyboard shortcuts to the menu
+			FMenuExtensionDelegate::CreateRaw(this, &FUEditorExtensionModule::AddDeleteUnusedAssetsMenuEntry) // Second delegate, defines the details for the menu entry
 		);
 
 		// store the folders that were selected
@@ -82,12 +142,13 @@ TSharedRef<FExtender> FUEditorExtensionModule::CustomCBMenuExtension(const TArra
 	return MenuExtender;
 }
 
-void FUEditorExtensionModule::AddCBMenuEntry( FMenuBuilder& MenuBuilder ) const
+// Defines the details for the custom menu entry
+void FUEditorExtensionModule::AddDeleteUnusedAssetsMenuEntry( FMenuBuilder& MenuBuilder ) const
 {
 	// Add a new menu entry
 	MenuBuilder.AddMenuEntry
 	(
-		FText::FromString( TEXT("Delete Unused Assets") ), // The text that will appear in the menu
+		FText::FromString( TEXT("Delete Unused Assets") ), // The title text that will appear in the menu
 		FText::FromString( TEXT("Safely delete all unused asset under the selected folder.") ), // The text that will appear in the tooltip
 		FSlateIcon(
 	
@@ -96,6 +157,7 @@ void FUEditorExtensionModule::AddCBMenuEntry( FMenuBuilder& MenuBuilder ) const
 	);
 }
 
+// The function that will be called when the menu is clicked
 void FUEditorExtensionModule::OnDeleteUnusedAssetsClicked() const
 {
 	// debug, show message "Delete Unused Assets Button Clicked"
@@ -108,6 +170,11 @@ void FUEditorExtensionModule::OnDeleteUnusedAssetsClicked() const
 		DebugHeader::ShowMsgDialog( EAppMsgType::Ok, TEXT("Please select only one folder.") );
 		return;
 	}
+	else if ( SelectedFolderPaths.Num() == 0 )
+	{
+		DebugHeader::ShowMsgDialog( EAppMsgType::Ok, TEXT("Please select a folder.") );
+		return;
+	}
 	
 	/* // debug, show the selected folder
 	DebugHeader::ShowNotifyInfo( TEXT("Currently Selected Folder: ") + SelectedFolderPaths[0] );
@@ -116,18 +183,19 @@ void FUEditorExtensionModule::OnDeleteUnusedAssetsClicked() const
 	// get the assets in the selected folder
 	const TArray<FString> AssetPathNames = UEditorAssetLibrary::ListAssets( SelectedFolderPaths[0] );
 
-	// check if the asset in the folder is empty,
+	// check if the folder is empty,
 	// if so, then notify the user that there are no assets in the folder
 	if( AssetPathNames.Num() == 0 )
 	{
-		DebugHeader::ShowMsgDialog( EAppMsgType::Ok, TEXT("No assets found in the selected folder.") );
+		DebugHeader::ShowMsgDialog( EAppMsgType::Ok, TEXT("No assets found in the selected folder."), false );
 		return;
 	}
 	
 	// notify user of the number of assets found in the folder
 	const EAppReturnType::Type UserResponse = DebugHeader::ShowMsgDialog(
 		EAppMsgType::YesNo,
-		FString::Printf( TEXT("Found %d assets in the selected folder. Do you want to delete them?"), AssetPathNames.Num() )
+		FString::Printf( TEXT("Found %d assets in the selected folder. Do you want to delete them?"), AssetPathNames.Num() ),
+		false
 	);
 
 	// if the user clicked no, return
@@ -144,8 +212,10 @@ void FUEditorExtensionModule::OnDeleteUnusedAssetsClicked() const
 	{
 		// skip root folders, like Developers, Collections, etc.
 		if( AssetPathName.Contains(TEXT("Developers")) ||
-			AssetPathName.Contains(TEXT("Collections"))
-		)
+			AssetPathName.Contains(TEXT("Collections")) ||
+			AssetPathName.Contains(TEXT("__ExternalActors__")) ||
+			AssetPathName.Contains(TEXT("__ExternalObjects__"))
+			)
 		{
 			continue;
 		}
@@ -166,7 +236,6 @@ void FUEditorExtensionModule::OnDeleteUnusedAssetsClicked() const
 			UnusedAssetDataInFolder.Add( AssetData );
 		}
 	}
-
 	
 	// check if unused assets were found
 	if( UnusedAssetDataInFolder.Num() > 0 )
@@ -175,16 +244,16 @@ void FUEditorExtensionModule::OnDeleteUnusedAssetsClicked() const
 		const int32 NumOfAssetsDeleted = ObjectTools::DeleteAssets( UnusedAssetDataInFolder );
 		
 		// Notify the user, display the total number of assets deleted
-		DebugHeader::ShowMsgDialog( EAppMsgType::Ok, FString::Printf(TEXT("Successfully deleted %d unused assets!"), NumOfAssetsDeleted) );
+		DebugHeader::ShowMsgDialog( EAppMsgType::Ok, FString::Printf(TEXT("Successfully deleted %d unused assets!"), NumOfAssetsDeleted), false );
 	}
 	else
 	{
 		// Notify the user that no unused assets were found
-		DebugHeader::ShowMsgDialog( EAppMsgType::Ok,TEXT("No unused assets found in the selected folder.") );
+		DebugHeader::ShowMsgDialog( EAppMsgType::Ok,TEXT("No unused assets found in the selected folder."), false );
 	}
 }
 
-
+// Fix up the redirectors for the assets in the selected folder
 void FUEditorExtensionModule::FixUpRedirectors() const
 {
 	// Array of redirectors to fix
@@ -225,6 +294,8 @@ void FUEditorExtensionModule::FixUpRedirectors() const
 	AssetToolsModule.Get().FixupReferencers( RedirectorsToFix );
 	
 }
+
+
 
 #pragma endregion
 
