@@ -110,18 +110,18 @@ void UQuickAssetAction::DuplicateAssets(int32 NumOfDuplicates)
 void UQuickAssetAction::AddPrefixes()
 {
 	// get the selected asset objects
-	TArray<UObject*>SelectedObjects = UEditorUtilityLibrary::GetSelectedAssets();
+	TArray<UObject*> SelectedObjects = UEditorUtilityLibrary::GetSelectedAssets();
 	uint32 Counter = 0; // counter to keep track of the number of assets that were renamed
 
-	for ( UObject* SelectedObject : SelectedObjects )
+	for ( const TObjectPtr<UObject> SelectedObject : SelectedObjects )
 	{
 		// if the selected object is null, continue to the next object
 		if( !SelectedObject ) continue;
 
 		// get the selected asset's class
-		const UClass* AssetClass = SelectedObject->GetClass();
+		const TObjectPtr<UClass> AssetClass = SelectedObject->GetClass();
 		// find the prefix for the selected object's class
-		const FString* PrefixFound = PrefixMap.Find( AssetClass );
+		const TObjectPtr<FString> PrefixFound = PrefixMap.Find( AssetClass );
 
 		// if the prefix is null or empty, notify the user
 		// then continue to the next object

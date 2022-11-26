@@ -78,9 +78,15 @@ private:
 
 	/**
 		 * This is the function that is called when the menu entry point is clicked.
-		 * Safely delete all unused asset under the selected folder in the Content Browser.
+		 * Safely delete all unused folders under the selected folder in the Content Browser.
 		 */
 	void OnDeleteEmptyFoldersClicked() const;
+
+	/**
+	 * This is the function that is called when the menu entry point is clicked.
+	 * Opens a window that allows the user to delete all unused assets found in the Content Browser.
+	 */
+	void OnOpenDeleteWindowClicked() const;
 
 
 #pragma endregion 

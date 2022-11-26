@@ -23,6 +23,7 @@ void FUEditorExtensionModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
+	
 }
 
 
@@ -143,6 +144,16 @@ void FUEditorExtensionModule::AddSweetMenuEntries( FMenuBuilder& MenuBuilder ) c
 		FUIAction(FExecuteAction::CreateRaw( this, &FUEditorExtensionModule::OnDeleteEmptyFoldersClicked) ), // The function that will be called when the menu is clicked
 		FName("DeleteEmptyFolders")
 	);
+
+	// Add a new menu entry Open Delete Assets Window
+	MenuBuilder.AddMenuEntry
+	(
+		FText::FromString( TEXT("Open Delete Assets Window") ), // The title text that will appear in the menu
+		FText::FromString( TEXT("Open a window that allow a you to delete individual or groups of assets.") ), // The text that will appear in the tooltip
+		FSlateIcon(), // No icon, we can also use FSlateIcon(FEditorStyle::GetStyleSetName(), "ClassIcon.Actor")
+		FUIAction(FExecuteAction::CreateRaw( this, &FUEditorExtensionModule::OnOpenDeleteWindowClicked) ), // The function that will be called when the menu is clicked
+		FName("DeleteAssetsWindow")
+	);
 }
 
 // Defines the position for inserting custom menu entry ** CURRENTLY NOT BEING USED **
@@ -196,7 +207,7 @@ void FUEditorExtensionModule::OnDeleteUnusedAssetsClicked() const
 	*/
 
 	// get the assets in the selected folder
-	const TArray<FString> PathNames = UEditorAssetLibrary::ListAssets( SelectedFolderPaths[0] );
+	const TArray<FString> PathNames = UEditorAssetLibrary::ListAssets( SelectedFolderPaths[0], true, false );
 
 	// check if the folder is empty,
 	// if so, then notify the user that there are no assets in the folder
@@ -235,17 +246,19 @@ void FUEditorExtensionModule::OnDeleteUnusedAssetsClicked() const
 			continue;
 		}
 
+		const FString& TempAssetPathName = FPackageName::ObjectPathToPackageName(AssetPathName);
+		
 		// check if the asset exists in the project
-		if( !UEditorAssetLibrary::DoesAssetExist(AssetPathName) ) continue;
+		if( !UEditorAssetLibrary::DoesAssetExist(TempAssetPathName) ) continue;
 
 		// get the references for the current asset
-		TArray<FString> AssetReferences = UEditorAssetLibrary::FindPackageReferencersForAsset( AssetPathName );
+		TArray<FString> AssetReferences = UEditorAssetLibrary::FindPackageReferencersForAsset( TempAssetPathName );
 
 		// check if the asset doesn't have any references
 		if( AssetReferences.Num() == 0 )
 		{
 			// get the asset data of the current asset
-			FAssetData AssetData = UEditorAssetLibrary::FindAssetData( AssetPathName );
+			FAssetData AssetData = UEditorAssetLibrary::FindAssetData( TempAssetPathName );
 
 			// add the asset data to the container
 			UnusedAssetDataInFolder.Add( AssetData );
@@ -266,11 +279,28 @@ void FUEditorExtensionModule::OnDeleteUnusedAssetsClicked() const
 		// Notify the user that no unused assets were found
 		DebugHeader::ShowMsgDialog( EAppMsgType::Ok,TEXT("No unused assets found in the selected folder."), false );
 	}
+
+	// Ask the user if they want to delete empty folders
+	const EAppReturnType::Type DeleteEmptyFoldersResponse = DebugHeader::ShowMsgDialog(
+		EAppMsgType::YesNo,
+		TEXT("Do you want to delete all empty folders in the selected folder?"),
+		false
+	);
+
+	// check the user response
+	if( DeleteEmptyFoldersResponse == EAppReturnType::No ) return;
+
+	if ( DeleteEmptyFoldersResponse == EAppReturnType::Yes )
+	{
+		// delete all empty folders in the selected folder
+		OnDeleteEmptyFoldersClicked();
+	}
 }
 
 // Fix up the redirectors for the assets in the selected folder
 void FUEditorExtensionModule::FixUpRedirectors() const
 {
+	DebugHeader::PrintLog(TEXT("Fixing up redirectors..."));
 	// Array of redirectors to fix
 	TArray<UObjectRedirector*> RedirectorsToFix;
 
@@ -282,7 +312,8 @@ void FUEditorExtensionModule::FixUpRedirectors() const
 	FARFilter Filter;
 	Filter.bRecursivePaths = true; // search through all subfolders
 	Filter.PackagePaths.Emplace("/Game"); // search through the /Game folder
-	Filter.ClassPaths.Emplace("ObjectRedirector"); // search for redirectors
+	Filter.ClassPaths.Emplace( UObjectRedirector::StaticPackage() ); // search for redirectors
+	// Filter.ClassNames.Emplace("ObjectRedirector"); // search for redirectors
 
 	// create an array to hold the asset data of the redirectors
 	TArray<FAssetData> OutRedirectorAssetData;
@@ -322,6 +353,8 @@ void FUEditorExtensionModule::OnDeleteEmptyFoldersClicked() const
 	const TArray<FString> FolderPathNames = UEditorAssetLibrary::ListAssets(SelectedFolderPaths[0], true, true);
 	uint32 Counter = 0;
 	
+	DebugHeader::ShowNotifyInfo( FString::Printf( TEXT("Root Folder path: %s"), *SelectedFolderPaths[0]) );
+	
 	// Filter out the directories, and check if it exists with DoesDirectoryExist()
 	FString DirectoryPaths;
 	TArray<FString> EmptyDirectories;
@@ -336,36 +369,41 @@ void FUEditorExtensionModule::OnDeleteEmptyFoldersClicked() const
 		{
 			continue;
 		}
+
+		// Testing
+		DebugHeader::PrintLog(*DirectoryPath);
 		
 		if ( !UEditorAssetLibrary::DoesDirectoryExist(DirectoryPath) ) continue;
-
+	
 		// Check if directory is empty with DoesDirectoryHaveAssets()
 		if ( !UEditorAssetLibrary::DoesDirectoryHaveAssets(DirectoryPath) )
 		{
 			// Add the empty directory path to an FString to print out later
 			DirectoryPaths.Append( FString::Printf(TEXT("%s\n"), *DirectoryPath) );
-
+	
 			// Add the empty directory to the array
 			EmptyDirectories.Add(DirectoryPath);
 		}
 	}
-
+	
 	if( EmptyDirectories.Num() == 0 )
 	{
 		DebugHeader::ShowMsgDialog( EAppMsgType::Ok, TEXT("No empty folders found in the selected folder."), false );
 		return;
 	}
-
+	
+	
 	// Ask the user if they want to delete the empty folders, and store the response
 	const EAppReturnType::Type UserResponse =
-		DebugHeader::ShowMsgDialog( EAppMsgType::OkCancel,
-		FString::Printf( TEXT("Are you sure you want to delete the empty folders? \n%s\n Please, confirm your selection."), *DirectoryPaths ),
-		false );
-
-	// Check if the user response
-	if( UserResponse == EAppReturnType::Cancel ) return;
+		DebugHeader::ShowMsgDialog( EAppMsgType::YesNoYesAll,
+		FString::Printf( TEXT("Are you sure you want to delete the empty folders? \n%s\n Select 'YesAll' to include the root folder. \n %s"),
+			*DirectoryPaths, *SelectedFolderPaths[0] ),
+			false );
 	
-	if( UserResponse == EAppReturnType::Ok )
+	// Check if the user response
+	if( UserResponse == EAppReturnType::No ) return;
+	
+	if( UserResponse == EAppReturnType::Yes )
 	{
 		// Loop through the empty directories and delete them
 		for (const FString& EmptyDirectory : EmptyDirectories)
@@ -375,12 +413,73 @@ void FUEditorExtensionModule::OnDeleteEmptyFoldersClicked() const
 		}
 	}
 
+	if( UserResponse == EAppReturnType::YesAll )
+	{
+		// Loop through the empty directories and delete them
+		for (const FString& EmptyDirectory : EmptyDirectories)
+		{
+			UEditorAssetLibrary::DeleteDirectory(EmptyDirectory)
+			? Counter++ : DebugHeader::ShowNotifyInfo( FString::Printf(TEXT("Failed to delete %s"), *EmptyDirectory) );
+		}
+
+		// Check if the root folder is empty,
+		// if it is, delete it
+		if( !UEditorAssetLibrary::DoesDirectoryHaveAssets(SelectedFolderPaths[0]) )
+		{
+			// Delete the root folder
+			UEditorAssetLibrary::DeleteDirectory(SelectedFolderPaths[0])
+			? Counter++ : DebugHeader::ShowNotifyInfo( FString::Printf(TEXT("Failed to delete %s"), *SelectedFolderPaths[0]) );
+		}
+
+		// if the root folder isn't empty, get the assets and prompt the user
+		else 
+		{
+			// find assets in the root folder
+			const TArray<FString> RootFolderAssets = UEditorAssetLibrary::ListAssets(SelectedFolderPaths[0], true, false);
+			FString RootFolderAssetsString;
+			// loop through the assets
+			for (const FString& RootFolderAsset : RootFolderAssets)
+			{
+				// add the asset to the string
+				RootFolderAssetsString.Append( FString::Printf(TEXT("%s\n"), *RootFolderAsset) );
+			}
+			
+			// Show a message that the root folder is not empty
+			const EAppReturnType::Type RootFolderResponse = DebugHeader::ShowMsgDialog( EAppMsgType::OkCancel, 
+			FString::Printf(TEXT("The root folder is not empty. It constains: \n%s\n Are you sure you want to delete the root folder?"),
+				*RootFolderAssetsString), true );
+
+			// check if the user wants to delete the root folder
+			if( RootFolderResponse == EAppReturnType::Ok )
+			{
+				// Delete the root folder
+				UEditorAssetLibrary::DeleteDirectory(SelectedFolderPaths[0])
+				? Counter++
+				: DebugHeader::ShowNotifyInfo( FString::Printf(TEXT("Failed to delete %s"), *SelectedFolderPaths[0]) );
+			}
+			
+			// if the user doesn't want to delete the root folder,
+			// display a message that the operation was cancelled.
+			if( RootFolderResponse == EAppReturnType::Cancel )
+			{
+				// Show a message that the operation was cancelled
+				DebugHeader::ShowMsgDialog( EAppMsgType::Ok, TEXT("Delete Root Folder Operation Cancelled!!"), false );
+			}
+			
+		} // end of else statement
+		
+	} // end of user response == YesAll
+	
 	// Notify the user, display the total number of folders deleted
 	if( Counter > 0 )
 	{
 		DebugHeader::ShowNotifyInfo(FString::Printf(TEXT("Delete %d empty folders!"), Counter));
 	}
+}
 
+void FUEditorExtensionModule::OnOpenDeleteWindowClicked() const
+{
+	
 }
 
 
