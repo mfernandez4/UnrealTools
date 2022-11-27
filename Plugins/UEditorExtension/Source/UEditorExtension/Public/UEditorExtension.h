@@ -97,5 +97,7 @@ private:
 
 	TSharedRef<SDockTab> OnSpawnDeleteAssetsWindow(const FSpawnTabArgs& SpawnTabArgs) const;
 
+	FOnClicked DebugButtonClicked() const;
+
 #pragma endregion
 };

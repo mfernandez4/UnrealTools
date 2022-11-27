@@ -7,8 +7,8 @@
 #include "ContentBrowserModule.h"
 #include "DebugHeader.h"
 #include "EditorAssetLibrary.h"
-#include "EditorStyleSet.h"
-#include "EditorUtilityLibrary.h"
+// #include "EditorStyleSet.h"
+// #include "EditorUtilityLibrary.h"
 #include "ObjectTools.h"
 
 
@@ -481,19 +481,11 @@ void FUEditorExtensionModule::OnDeleteEmptyFoldersClicked() const
 	}
 }
 
-void FUEditorExtensionModule::OnOpenDeleteWindowClicked() const
-{
-	// debug
-	DebugHeader::ShowNotifyInfo( "Open Delete Assets Window Button Pressed!!" );
-
-	FGlobalTabmanager::Get()->TryInvokeTab(FName("DeleteAssetsWindow"));
-}
-
-
 #pragma endregion
 
 #pragma region CustomSlateEditorTab
 
+// Register the new dock-able tab window
 void FUEditorExtensionModule::RegisterDeleteAssetsWindow()
 {
 	// Register the tab spawner
@@ -505,6 +497,14 @@ void FUEditorExtensionModule::RegisterDeleteAssetsWindow()
 		.SetIcon( FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.Tabs.ContentBrowser") );
 }
 
+// Spawn the new dock-able tab window
+void FUEditorExtensionModule::OnOpenDeleteWindowClicked() const
+{	
+	// Create a new dock-able window
+	FGlobalTabmanager::Get()->TryInvokeTab(FName("DeleteAssetsWindow"));
+}
+
+// UI for the new dock-able tab window
 TSharedRef<SDockTab> FUEditorExtensionModule::OnSpawnDeleteAssetsWindow(const FSpawnTabArgs& SpawnTabArgs) const
 {
 	// Create the tab
@@ -513,20 +513,35 @@ TSharedRef<SDockTab> FUEditorExtensionModule::OnSpawnDeleteAssetsWindow(const FS
 		[
 			SNew(SVerticalBox)
 			+ SVerticalBox::Slot()
-			.AutoHeight()
+			.MaxHeight(25)
 			[
-				SNew(SButton)
-				.Text(LOCTEXT("DeleteAssetsWindowButton", "Delete Empty Folders"))
-				// .OnClicked(this, &FUEditorExtensionModule::OnDeleteEmptyFoldersClicked)
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				SNew(SButton)
-				.Text(LOCTEXT("OpenDeleteWindowButton", "Open Delete Assets Window"))
-				// .OnClicked(this, &FUEditorExtensionModule::OnOpenDeleteWindowClicked)
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("DeleteAssetsWindowButton", "Delete Empty Folders"))
+					// .OnClicked(FUEditorExtensionModule::DebugButtonClicked())
+					
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("OpenDeleteWindowButton", "Open Delete Assets Window"))
+					// .OnClicked(FUEditorExtensionModule::DebugButtonClicked())
+				]
 			]
 		];
+}
+
+FOnClicked FUEditorExtensionModule::DebugButtonClicked() const
+{
+	// show a message dialog
+	DebugHeader::ShowNotifyInfo(TEXT("Debug Button Clicked!"));
+
+	return FOnClicked();
+
 }
 
 #pragma endregion
