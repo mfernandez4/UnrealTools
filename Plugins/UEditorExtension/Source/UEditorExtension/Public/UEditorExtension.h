@@ -89,5 +89,13 @@ private:
 	void OnOpenDeleteWindowClicked() const;
 
 
-#pragma endregion 
+#pragma endregion
+
+#pragma region CustomSlateEditorTab
+
+	void RegisterDeleteAssetsWindow();
+
+	TSharedRef<SDockTab> OnSpawnDeleteAssetsWindow(const FSpawnTabArgs& SpawnTabArgs) const;
+
+#pragma endregion
 };

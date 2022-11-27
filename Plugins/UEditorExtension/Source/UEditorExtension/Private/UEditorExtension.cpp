@@ -7,6 +7,7 @@
 #include "ContentBrowserModule.h"
 #include "DebugHeader.h"
 #include "EditorAssetLibrary.h"
+#include "EditorStyleSet.h"
 #include "EditorUtilityLibrary.h"
 #include "ObjectTools.h"
 
@@ -17,6 +18,9 @@ void FUEditorExtensionModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 	InitCBMenuExtension();
+
+	// Register Custom Slate Tab
+	RegisterDeleteAssetsWindow();
 }
 
 void FUEditorExtensionModule::ShutdownModule()
@@ -479,12 +483,53 @@ void FUEditorExtensionModule::OnDeleteEmptyFoldersClicked() const
 
 void FUEditorExtensionModule::OnOpenDeleteWindowClicked() const
 {
-	
+	// debug
+	DebugHeader::ShowNotifyInfo( "Open Delete Assets Window Button Pressed!!" );
+
+	FGlobalTabmanager::Get()->TryInvokeTab(FName("DeleteAssetsWindow"));
 }
 
 
 #pragma endregion
 
+#pragma region CustomSlateEditorTab
+
+void FUEditorExtensionModule::RegisterDeleteAssetsWindow()
+{
+	// Register the tab spawner
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(
+		FName("DeleteAssetsWindow"), // Tab ID
+		FOnSpawnTab::CreateRaw(this, &FUEditorExtensionModule::OnSpawnDeleteAssetsWindow) )
+		.SetDisplayName( LOCTEXT("DeleteAssetsWindow", "Delete Assets Window") )
+		.SetTooltipText( LOCTEXT("DeleteAssetsWindowTooltip", "Open the Delete Assets Window") )
+		.SetIcon( FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.Tabs.ContentBrowser") );
+}
+
+TSharedRef<SDockTab> FUEditorExtensionModule::OnSpawnDeleteAssetsWindow(const FSpawnTabArgs& SpawnTabArgs) const
+{
+	// Create the tab
+	return SNew(SDockTab)
+		.TabRole(ETabRole::NomadTab)
+		[
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("DeleteAssetsWindowButton", "Delete Empty Folders"))
+				// .OnClicked(this, &FUEditorExtensionModule::OnDeleteEmptyFoldersClicked)
+			]
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("OpenDeleteWindowButton", "Open Delete Assets Window"))
+				// .OnClicked(this, &FUEditorExtensionModule::OnOpenDeleteWindowClicked)
+			]
+		];
+}
+
+#pragma endregion
 
 #undef LOCTEXT_NAMESPACE
 	
