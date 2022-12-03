@@ -508,40 +508,31 @@ void FUEditorExtensionModule::OnOpenDeleteWindowClicked() const
 TSharedRef<SDockTab> FUEditorExtensionModule::OnSpawnDeleteAssetsWindow(const FSpawnTabArgs& SpawnTabArgs) const
 {
 	// Create the tab
-	return SNew(SDockTab)
-		.TabRole(ETabRole::NomadTab)
+	return
+	SNew(SDockTab).TabRole(ETabRole::NomadTab)
+	[
+		SNew(SVerticalBox)
+		+ SVerticalBox::Slot()
+		.MaxHeight(25)
 		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot()
-			.MaxHeight(25)
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
 			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				[
-					SNew(SButton)
-					.Text(LOCTEXT("DeleteAssetsWindowButton", "Delete Empty Folders"))
-					// .OnClicked(FUEditorExtensionModule::DebugButtonClicked())
-					
-				]
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				[
-					SNew(SButton)
-					.Text(LOCTEXT("OpenDeleteWindowButton", "Open Delete Assets Window"))
-					// .OnClicked(FUEditorExtensionModule::DebugButtonClicked())
-				]
+				SNew(SButton)
+				.Text(LOCTEXT("DeleteAssetsWindowButton", "Delete Empty Folders"))
+				// .OnClicked(FUEditorExtensionModule::DebugButtonClicked())
+				
 			]
-		];
-}
-
-FOnClicked FUEditorExtensionModule::DebugButtonClicked() const
-{
-	// show a message dialog
-	DebugHeader::ShowNotifyInfo(TEXT("Debug Button Clicked!"));
-
-	return FOnClicked();
-
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("OpenDeleteWindowButton", "Open Delete Assets Window"))
+				// .OnClicked(FUEditorExtensionModule::DebugButtonClicked())
+			]
+		]
+	];
 }
 
 #pragma endregion
