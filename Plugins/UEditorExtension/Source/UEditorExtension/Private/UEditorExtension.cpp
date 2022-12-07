@@ -10,6 +10,7 @@
 // #include "EditorStyleSet.h"
 // #include "EditorUtilityLibrary.h"
 #include "ObjectTools.h"
+#include "SlateWidgets/AdvancedDeletionWidget.h"
 
 
 #define LOCTEXT_NAMESPACE "FUEditorExtensionModule"
@@ -511,28 +512,65 @@ TSharedRef<SDockTab> FUEditorExtensionModule::OnSpawnDeleteAssetsWindow(const FS
 	return
 	SNew(SDockTab).TabRole(ETabRole::NomadTab)
 	[
-		SNew(SVerticalBox)
-		+ SVerticalBox::Slot()
-		.MaxHeight(25)
-		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				SNew(SButton)
-				.Text(LOCTEXT("DeleteAssetsWindowButton", "Delete Empty Folders"))
-				// .OnClicked(FUEditorExtensionModule::DebugButtonClicked())
-				
-			]
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				SNew(SButton)
-				.Text(LOCTEXT("OpenDeleteWindowButton", "Open Delete Assets Window"))
-				// .OnClicked(FUEditorExtensionModule::DebugButtonClicked())
-			]
-		]
+		SNew(SAdvancedDeletionTab)
+		.AssetDataArray( GetAssetDataFromSelectedFolder() ) // Pass the module pointer to the tab. This will show the assets from the selected folder.
+		// Testing the new UI
+		// SNew(SVerticalBox)
+		// + SVerticalBox::Slot()
+		// .MaxHeight(25)
+		// [
+		// 	SNew(SHorizontalBox)
+		// 	+ SHorizontalBox::Slot()
+		// 	.AutoWidth()
+		// 	[
+		// 		SNew(SButton)
+		// 		.Text(LOCTEXT("DeleteAssetsWindowButton", "Delete Empty Folders"))
+		// 		// .OnClicked(FUEditorExtensionModule::DebugButtonClicked())
+		// 		
+		// 	]
+		// 	+ SHorizontalBox::Slot()
+		// 	.AutoWidth()
+		// 	[
+		// 		SNew(SButton)
+		// 		.Text(LOCTEXT("OpenDeleteWindowButton", "Open Delete Assets Window"))
+		// 		// .OnClicked(FUEditorExtensionModule::DebugButtonClicked())
+		// 	]
+		// ]
 	];
+}
+
+TArray<TSharedPtr<FAssetData>> FUEditorExtensionModule::GetAssetDataFromSelectedFolder() const
+{
+	// create return data array
+	TArray<TSharedPtr<FAssetData>> AssetDataArray;
+
+	// list assets from the selected directory
+	const TArray<FString> SelectedFolderAssets = UEditorAssetLibrary::ListAssets(SelectedFolderPaths[0], true, false);
+
+	// loop through the assets in the selected directory
+	for( const FString& AssetPathName : SelectedFolderAssets )
+	{
+		// skip root folders, like Developers, Collections, etc.
+		if( AssetPathName.Contains(TEXT("Developers")) ||
+		AssetPathName.Contains(TEXT("Collections")) ||
+		AssetPathName.Contains(TEXT("__ExternalActors__")) ||
+		AssetPathName.Contains(TEXT("__ExternalObjects__")) )
+			{
+				continue;
+			}
+
+		// check if the asset exists, if it does, continue
+		if( UEditorAssetLibrary::DoesAssetExist( AssetPathName ) ) continue;
+
+		// get the asset data
+		const FAssetData AssetData = UEditorAssetLibrary::FindAssetData( AssetPathName );
+
+		// convert the asset data to a t-shared-pointer and add it to the asset data array
+		AssetDataArray.Add( MakeShared<FAssetData>(AssetData) );
+	}
+
+	// return the asset data array
+	return AssetDataArray;
 }
 
 #pragma endregion

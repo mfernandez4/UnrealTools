@@ -97,6 +97,7 @@ private:
 
 	TSharedRef<SDockTab> OnSpawnDeleteAssetsWindow(const FSpawnTabArgs& SpawnTabArgs) const;
 
-
+	// Function will get AssetData from the Content Browser and pass it to the DeleteAssetsWindow
+	TArray< TSharedPtr<FAssetData> > GetAssetDataFromSelectedFolder() const;
 #pragma endregion
 };
