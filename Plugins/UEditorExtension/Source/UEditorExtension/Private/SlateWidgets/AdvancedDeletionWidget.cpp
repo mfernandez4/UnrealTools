@@ -2,12 +2,21 @@
 
 
 #include "SlateWidgets/AdvancedDeletionWidget.h"
+#include <SlateOptMacros.h>
 
 #include "DebugHeader.h"
+#include "UEditorExtension.h"
+
 #include "EditorFontGlyphs.h"
 #include "Styling/SlateStyleMacros.h"
 #include "Widgets/Layout/SBackgroundBlur.h"
 #include "Widgets/Layout/SScrollBox.h"
+
+
+#define LOCTEXT_NAMESPACE "SAdvancedDeletionTab"
+
+
+BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 
 // Constructor
@@ -62,13 +71,20 @@ SAdvancedDeletionTab::SAdvancedDeletionTab()
 	;
 }
 
+
 void SAdvancedDeletionTab::Construct(const FArguments& InArgs)
 {
+	//WidgetName is now of type TAttribute<FName> to resolve, use WidgetName.Get();
+	WidgetName = InArgs._WidgetTitle;
+	
 	// Can the widget ever support keyboard focus
 	bCanSupportFocus = true; // This is required for keyboard focus to be passed to this widget
 
 	// Capture the Asset Data from the selected folder. This is the data we will display in the list view.
 	SelectedAssetDataArray = InArgs._StoredAssetsDataArray;
+
+	// Store the SelectedAssetDataArray to use for searching
+	StoredAssetDataArray = SelectedAssetDataArray;
 	
 	// Create Font Info for the text block
 	FSlateFontInfo TitleTextFont = GetEmbossedTextFont();
@@ -78,7 +94,6 @@ void SAdvancedDeletionTab::Construct(const FArguments& InArgs)
 	[
 		// Main Vertical Box
 		SNew(SVerticalBox)
-		.Cursor(EMouseCursor::Crosshairs)
 
 		// First Vertical Slot for Title Text
 		+ SVerticalBox::Slot()
@@ -103,47 +118,226 @@ void SAdvancedDeletionTab::Construct(const FArguments& InArgs)
 		+ SVerticalBox::Slot()
 		.VAlign(VAlign_Fill)
 		.HAlign(HAlign_Fill)
-		.Padding(10)
+		.Padding( 5.f, 0.f)
 		[
 			SNew(SScrollBox)
 			+ SScrollBox::Slot()
 			[
-				SNew(SListView< TSharedPtr<FAssetData> >)
-				.ItemHeight(30.f)
-				.ListItemsSource(&SelectedAssetDataArray)
-				.OnGenerateRow(this, &SAdvancedDeletionTab::OnGenerateRowForList)
+				ConstructAssetListView()
 			]
 		]
 
-		// Slot for 3 buttons
+		// Slot for 3 buttons ( Delete All, Select All, Deselect All )
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		[
-			SNew(SHorizontalBox)
-		]
-
-		// Slot for background blur
-		+ SVerticalBox::Slot()
-		.AutoHeight()
-		[
-			SNew(SBackgroundBlur)
-			.BlurStrength(10.f)
-			.BlurRadius(10.f)
-			.Content()
+			SNew(SBox)
+			.HeightOverride(35.f)
 			[
-				SNew(STextBlock)
-				.Text(FText::FromString(TEXT("This is a background blur")))
-				.Font(TitleTextFont)
-				.Justification(ETextJustify::Center)
-				.ColorAndOpacity(FColor::White)
+				SNew(SBorder)
+				.BorderImage(FAppStyle::Get().GetBrush("Border"))
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				[
+					SNew(SHorizontalBox)
+
+					// Search Bar
+					+ SHorizontalBox::Slot()
+					.FillWidth(1.f)
+					.Padding(0.8f, 0.8f, 3.0f, 0.8f)
+					[
+						SAssignNew( AssetSearchBox, SEditableTextBox )
+						.Font( FCoreStyle::Get().GetFontStyle("BoldFont") )
+						.HintText( LOCTEXT("SearchBoxHint", "Search Assets") )
+						.OnTextChanged( this, &SAdvancedDeletionTab::OnSearchBoxChanged )
+					]
+					
+					
+					// Delete All Button
+					+SHorizontalBox::Slot()
+					.Padding(0.8f)
+					.HAlign(HAlign_Fill)
+					.AutoWidth()
+					[
+					ConstructButtonWithIcon(
+						LOCTEXT("AdvancedDeletionDeleteAllGroup", "Delete All").ToString(),
+					FEditorFontGlyphs::Times,
+					DeleteButtonStyle,
+					FOnClicked::CreateSP(this, &SAdvancedDeletionTab::OnDeleteAllButtonClicked)
+					)
+					]
+
+					// Select All Button
+					+SHorizontalBox::Slot()
+					.Padding(0.8f)
+					.HAlign(HAlign_Fill)
+					.AutoWidth()
+					[
+					ConstructButtonWithIcon( 
+					"Select All",
+					FEditorFontGlyphs::Times,
+					DeleteButtonStyle,
+					FOnClicked::CreateSP(this, &SAdvancedDeletionTab::OnSelectAllButtonClicked)
+					)
+					]
+
+					// Deselect All Button
+					+SHorizontalBox::Slot()
+					.Padding(0.8f)
+					.HAlign(HAlign_Fill)
+					.AutoWidth()
+					[
+					ConstructButtonWithIcon( 
+					"Deselect All",
+					FEditorFontGlyphs::Times,
+					DeleteButtonStyle,
+					FOnClicked::CreateSP(this, &SAdvancedDeletionTab::OnDeselectAllButtonClicked)
+					)
+					]
+				]
 			]
 		]
+
+		// TODO: TESTING BACKGROUND BLUR ** SHOULD REMOVE LATER **
+		// // Slot for background blur
+		// + SVerticalBox::Slot()
+		// .AutoHeight()
+		// [
+		// 	SNew(SBackgroundBlur)
+		// 	.BlurStrength(10.f)
+		// 	.BlurRadius(10.f)
+		// 	.Content()
+		// 	[
+		// 		SNew(STextBlock)
+		// 		.Text(FText::FromString(TEXT("This is a background blur")))
+		// 		.Font(TitleTextFont)
+		// 		.Justification(ETextJustify::Center)
+		// 		.ColorAndOpacity(FColor::White)
+		// 	]
+		// ]
+		
 	];
 }
 
 
+TSharedRef<SListView<TSharedPtr<FAssetData>>> SAdvancedDeletionTab::ConstructAssetListView()
+{
+	// Original code
+
+	// Hold the list view widget in a variable
+	//  ConstructedAssetListView = SNew(SListView< TSharedPtr<FAssetData> >)
+	// 	.ItemHeight(30.f)
+	// 	.ListItemsSource(&SelectedAssetDataArray)
+	//  .OnGenerateRow(this, &SAdvancedDeletionTab::OnGenerateRowForList);
+
+	// Convert the variable to a shared reference and return it
+	// return ConstructedAssetListView.ToSharedRef();
+
+	// Modified code
+	SAssignNew( AssetListView, SListView< TSharedPtr<FAssetData> >)
+	.ItemHeight(30.f)
+	.ListItemsSource(&SelectedAssetDataArray)
+	.OnGenerateRow(this, &SAdvancedDeletionTab::OnGenerateRowForList);
+
+	// Convert the variable to a shared reference and return it
+	return AssetListView.ToSharedRef();
+}
+
+void SAdvancedDeletionTab::RefreshAssetListView() const
+{
+	// Original Code ...
+	// // Check if the Asset List View Widget is valid
+	// if( ConstructedAssetListView.IsValid() )
+	// {
+	// 	// Rebuild the Asset List
+	// 	ConstructedAssetListView->RebuildList();
+	// }
+
+	
+	// Check if the Asset List View Widget is valid
+	if( AssetListView.IsValid() )
+	{
+		// Rebuild the Asset List
+		AssetListView->RebuildList();
+	}
+}
+
+
+// This function updates the asset list view as the search box is changed
+void SAdvancedDeletionTab::OnSearchBoxChanged(const FText& Text)
+{
+	// Get the text from the search box
+	const FString SearchText = Text.ToString();
+	DebugHeader::Print( SearchText, FColor::Cyan );
+	
+	
+	// If the search text is empty, and the SelectedAssetDataArray does not match StoredAssetDataArray, then set the SelectedAssetDataArray to the StoredAssetDataArray
+	if( SearchText.IsEmpty() )
+	{
+		if ( SelectedAssetDataArray.Num() < StoredAssetDataArray.Num() )
+		{
+			SelectedAssetDataArray = StoredAssetDataArray;
+			RefreshAssetListView();
+		}
+		return;
+	}
+	
+	// Create a new array to store the filtered assets
+	TArray< TSharedPtr<FAssetData> > FilteredAssetDataArray;
+	
+	// Loop through the SelectedAssetDataArray and add the assets that match the search text to the FilteredAssetDataArray
+	
+	for ( const TSharedPtr<FAssetData> AssetData : StoredAssetDataArray )
+	{
+		if ( AssetData->AssetName.ToString().Contains( SearchText ) )
+		{
+			FilteredAssetDataArray.Add( AssetData );
+			DebugHeader::Print( *AssetData->AssetName.ToString(), FColor::Red );
+		}
+	}
+	
+	// Check if the FilteredAssetDataArray is empty
+	if ( FilteredAssetDataArray.Num() < 1 )
+	{
+		// If it is empty, then set the SelectedAssetDataArray to the StoredAssetDataArray
+		// SelectedAssetDataArray = StoredAssetDataArray;
+		SelectedAssetDataArray.Empty();
+	}
+	else
+	{
+		// If it is not empty, then set the SelectedAssetDataArray to the FilteredAssetDataArray
+		// SelectedAssetDataArray.Empty();
+		SelectedAssetDataArray = FilteredAssetDataArray;
+	}
+	
+	//Refresh the asset list view
+	RefreshAssetListView();
+}
+
+
+FReply SAdvancedDeletionTab::OnDeleteAllButtonClicked()
+{
+	DebugHeader::ShowNotifyInfo(TEXT("OnDeleteAllButtonClicked"));
+	return FReply::Handled();
+}
+
+FReply SAdvancedDeletionTab::OnSelectAllButtonClicked()
+{
+	DebugHeader::ShowNotifyInfo(TEXT("OnSelectAllButtonClicked"));
+	return FReply::Handled();
+}
+
+FReply SAdvancedDeletionTab::OnDeselectAllButtonClicked()
+{
+	DebugHeader::ShowNotifyInfo(TEXT("OnDeselectAllButtonClicked"));
+	return FReply::Handled();
+}
+
+
+#pragma region RowWidgetForAssetListView
+
 // Details about this function here.
-TSharedRef<ITableRow> SAdvancedDeletionTab::OnGenerateRowForList(TSharedPtr<FAssetData> AssetData, const TSharedRef<STableViewBase>& OwnerTable) const
+TSharedRef<ITableRow> SAdvancedDeletionTab::OnGenerateRowForList(TSharedPtr<FAssetData> AssetData, const TSharedRef<STableViewBase>& OwnerTable)
 {
 	// Check if the asset data is valid, if not return an empty row widget
 	if ( !AssetData.IsValid() ) return SNew( STableRow< TSharedPtr<FAssetData> >, OwnerTable );
@@ -162,6 +356,7 @@ TSharedRef<ITableRow> SAdvancedDeletionTab::OnGenerateRowForList(TSharedPtr<FAss
 	// Create a new row widget, and return it
 	const TSharedRef< STableRow< TSharedPtr<FAssetData> > > ListViewRowWidget =
 	 SNew( STableRow< TSharedPtr<FAssetData> >, OwnerTable )
+		.Padding( FMargin(5.f) )
 		[
 			// Create a horizontal box to hold the asset name and other options
 			SNew(SHorizontalBox)
@@ -171,7 +366,7 @@ TSharedRef<ITableRow> SAdvancedDeletionTab::OnGenerateRowForList(TSharedPtr<FAss
 			+ SHorizontalBox::Slot()
 			.HAlign(HAlign_Center)
 			.VAlign(VAlign_Center)
-			.Padding(5.f)
+			.Padding(0.f)
 			// .FillWidth(.15f)
 			.AutoWidth()
 			.MaxWidth(20.f)
@@ -183,12 +378,12 @@ TSharedRef<ITableRow> SAdvancedDeletionTab::OnGenerateRowForList(TSharedPtr<FAss
 			
 			// Display the asset class name
 			+ SHorizontalBox::Slot()
-			.HAlign(HAlign_Left)
+			.HAlign(HAlign_Center)
 			.VAlign(VAlign_Center)
-			.Padding( 25, 5 )
+			.Padding( 15, 0 )
 			// .AutoWidth()
-			// .MaxWidth(250)
-			.FillWidth(.1f)
+			// .MaxWidth(150)
+			.FillWidth(.25f)
 			[
 				ConstructTextForRowWidget( DisplayClassName, AssetClassNameFont )
 			]
@@ -198,8 +393,8 @@ TSharedRef<ITableRow> SAdvancedDeletionTab::OnGenerateRowForList(TSharedPtr<FAss
 			+ SHorizontalBox::Slot()
 			.HAlign(HAlign_Left)
 			.VAlign(VAlign_Center)
-			.Padding( 25, 5 )
-			.FillWidth(.25f)
+			.Padding( 15, 0 )
+			// .FillWidth(.25f)
 			[
 				// Create a new text block widget, with the asset name
 				ConstructTextForRowWidget( DisplayAssetName, AssetNameFont )
@@ -212,7 +407,7 @@ TSharedRef<ITableRow> SAdvancedDeletionTab::OnGenerateRowForList(TSharedPtr<FAss
 			.HAlign(HAlign_Center)
 			.AutoWidth()
 			.MaxWidth(450.f)
-			.Padding(10, 5)
+			.Padding( 10, 0 )
 			[
 				ConstructButtonWithIcon( 
 				"Delete",
@@ -244,6 +439,7 @@ TSharedRef<SCheckBox> SAdvancedDeletionTab::ConstructCheckBox(const TSharedPtr<F
 	return ConstructedCheckBoxWidget;
 }
 
+
 void SAdvancedDeletionTab::OnAssetCheckBoxStateChanged(ECheckBoxState NewState, TSharedPtr<FAssetData> AssetData) const
 {
 	switch (NewState) {
@@ -264,13 +460,6 @@ void SAdvancedDeletionTab::OnAssetCheckBoxStateChanged(ECheckBoxState NewState, 
 }
 
 
-/** The OnDeleteButtonClicked function is bound to the OnClicked event of the delete button widget. We are just printing a debug message for now, but this is where we will call the function that will delete the asset. */
-FReply SAdvancedDeletionTab::OnDeleteButtonClicked(TSharedPtr<FAssetData> AssetData) const
-{
-	DebugHeader::Print( FString::Printf(TEXT("Delete button clicked! %s"), *AssetData->AssetName.ToString()), FColor::Green );
-	return FReply::Handled();
-}
-
 /** Create a new text block widget, and return it */
 TSharedRef<STextBlock> SAdvancedDeletionTab::ConstructTextForRowWidget(const FString TextContent,
 	const FSlateFontInfo& TextFont) const
@@ -287,6 +476,7 @@ TSharedRef<STextBlock> SAdvancedDeletionTab::ConstructTextForRowWidget(const FSt
 	return ConstructedTextBlockWidget;
 }
 
+
 TSharedRef<SButton> SAdvancedDeletionTab::ConstructButtonWithIcon(const FString ButtonText, const FText EditorGlyph,
 	const FButtonStyle& InButtonStyle, const FOnClicked& OnClickedDelegate) const
 {
@@ -295,7 +485,7 @@ TSharedRef<SButton> SAdvancedDeletionTab::ConstructButtonWithIcon(const FString 
 	ButtonTextFont.Size = 12;
 
 	// Construct a text block widget for the button text
-	const TSharedRef<STextBlock> ButtonTextBlock = ConstructTextForRowWidget( TEXT("Delete"), ButtonTextFont );
+	const TSharedRef<STextBlock> ButtonTextBlock = ConstructTextForRowWidget( ButtonText, ButtonTextFont );
 	ButtonTextBlock->SetTextStyle( &DeleteButtonTextStyle );
 
 	/** Construct the button widget with all it's children */
@@ -336,4 +526,45 @@ TSharedRef<SButton> SAdvancedDeletionTab::ConstructButtonWithIcon(const FString 
 }
 
 
+/** The OnDeleteButtonClicked function is bound to the OnClicked event of the delete button widget. We are just printing a debug message for now, but this is where we will call the function that will delete the asset. */
+FReply SAdvancedDeletionTab::OnDeleteButtonClicked( TSharedPtr<FAssetData> AssetData )
+{
+	/* Load Editor Extension Module */
+	FUEditorExtensionModule& EditorExtensionModule =
+		FModuleManager::LoadModuleChecked<FUEditorExtensionModule>( TEXT("UEditorExtension") );
+	
+	// DebugHeader::Print( FString::Printf(TEXT("Delete button clicked! %s"), *AssetData->AssetName.ToString()), FColor::Green );
+	
+	/**
+	 * Use the DeleteSingleAsset function in the EditorExtensionModule to delete the selected asset.
+	 * @returns true if the asset was deleted successfully, false if it failed.
+	 */
+	const bool bAssetDelete = EditorExtensionModule.DeleteSingleAsset( *AssetData.Get() );
 
+	/* If the asset was deleted, refresh the list */
+	if ( bAssetDelete )
+	{
+		/* Update the Asset List in the SList Widget */
+
+		// First, check if the Asset is in the Asset List
+		if( SelectedAssetDataArray.Contains( AssetData ) )
+		{
+			// Then, we need to remove the asset from the Asset List
+			SelectedAssetDataArray.Remove( AssetData );
+			StoredAssetDataArray = SelectedAssetDataArray;
+		}
+
+		// Refresh the list
+		RefreshAssetListView();
+	}
+	
+	
+	return FReply::Handled();
+}
+
+#pragma endregion
+
+
+END_SLATE_FUNCTION_BUILD_OPTIMIZATION
+
+#undef LOCTEXT_NAMESPACE

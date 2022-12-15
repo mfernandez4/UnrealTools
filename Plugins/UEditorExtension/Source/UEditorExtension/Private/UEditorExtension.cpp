@@ -516,6 +516,7 @@ TSharedRef<SDockTab> FUEditorExtensionModule::OnSpawnDeleteAssetsWindow(const FS
 		SNew(SAdvancedDeletionTab)
 		// Pass the module pointer to the tab. This will show the assets from the selected folder.
 		.StoredAssetsDataArray( GetAssetDataFromSelectedFolder() )
+		.WidgetTitle( "Delete Assets Window" )
 	];
 }
 
@@ -558,6 +559,28 @@ TArray<TSharedPtr<FAssetData>> FUEditorExtensionModule::GetAssetDataFromSelected
 	// return the asset data array
 	return AssetDataArray;
 }
+
+
+#pragma endregion
+
+#pragma region AdvancedDeletionWindowCommands
+
+
+void FUEditorExtensionModule::RegisterCommands()
+{
+	
+}
+
+bool FUEditorExtensionModule::DeleteSingleAsset( const FAssetData AssetToDelete ) const
+{
+	if( ObjectTools::DeleteAssets(TArray<FAssetData>{ AssetToDelete.GetAsset() }) > 0 )
+	{
+		return true;
+	}
+
+	return false;
+}
+
 
 #pragma endregion
 

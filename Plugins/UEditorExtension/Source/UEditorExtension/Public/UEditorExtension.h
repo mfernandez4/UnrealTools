@@ -99,5 +99,17 @@ private:
 
 	// Function will get AssetData from the Content Browser and pass it to the DeleteAssetsWindow
 	TArray< TSharedPtr<FAssetData> > GetAssetDataFromSelectedFolder() const;
+
 #pragma endregion
+
+#pragma region AdvancedDeletionWindowCommands
+	
+public:
+
+	void RegisterCommands();
+
+	bool DeleteSingleAsset( const FAssetData AssetToDelete ) const;
+
+#pragma endregion
+	
 };
