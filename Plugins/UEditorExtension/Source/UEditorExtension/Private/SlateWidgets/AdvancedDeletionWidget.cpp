@@ -9,7 +9,6 @@
 
 #include "EditorFontGlyphs.h"
 #include "Styling/SlateStyleMacros.h"
-#include "Widgets/Layout/SBackgroundBlur.h"
 #include "Widgets/Layout/SScrollBox.h"
 
 
@@ -85,6 +84,10 @@ void SAdvancedDeletionTab::Construct(const FArguments& InArgs)
 
 	// Store the SelectedAssetDataArray to use for searching
 	StoredAssetDataArray = SelectedAssetDataArray;
+
+	// Empty arrays to get rid of any old data
+	AssetDataToDelete.Empty();
+	CheckBoxesArray.Empty();
 	
 	// Create Font Info for the text block
 	FSlateFontInfo TitleTextFont = GetEmbossedTextFont();
@@ -160,7 +163,7 @@ void SAdvancedDeletionTab::Construct(const FArguments& InArgs)
 					.AutoWidth()
 					[
 					ConstructButtonWithIcon(
-						LOCTEXT("AdvancedDeletionDeleteAllGroup", "Delete All").ToString(),
+						LOCTEXT("AdvancedDeletionDeleteAllGroup", "Delete Selected").ToString(),
 					FEditorFontGlyphs::Times,
 					DeleteButtonStyle,
 					FOnClicked::CreateSP(this, &SAdvancedDeletionTab::OnDeleteAllButtonClicked)
@@ -197,140 +200,37 @@ void SAdvancedDeletionTab::Construct(const FArguments& InArgs)
 				]
 			]
 		]
-
-		// TODO: TESTING BACKGROUND BLUR ** SHOULD REMOVE LATER **
-		// // Slot for background blur
-		// + SVerticalBox::Slot()
-		// .AutoHeight()
-		// [
-		// 	SNew(SBackgroundBlur)
-		// 	.BlurStrength(10.f)
-		// 	.BlurRadius(10.f)
-		// 	.Content()
-		// 	[
-		// 		SNew(STextBlock)
-		// 		.Text(FText::FromString(TEXT("This is a background blur")))
-		// 		.Font(TitleTextFont)
-		// 		.Justification(ETextJustify::Center)
-		// 		.ColorAndOpacity(FColor::White)
-		// 	]
-		// ]
-		
 	];
 }
 
 
+// Construct the Asset List View
 TSharedRef<SListView<TSharedPtr<FAssetData>>> SAdvancedDeletionTab::ConstructAssetListView()
 {
-	// Original code
-
-	// Hold the list view widget in a variable
-	//  ConstructedAssetListView = SNew(SListView< TSharedPtr<FAssetData> >)
-	// 	.ItemHeight(30.f)
-	// 	.ListItemsSource(&SelectedAssetDataArray)
-	//  .OnGenerateRow(this, &SAdvancedDeletionTab::OnGenerateRowForList);
-
-	// Convert the variable to a shared reference and return it
-	// return ConstructedAssetListView.ToSharedRef();
-
-	// Modified code
-	SAssignNew( AssetListView, SListView< TSharedPtr<FAssetData> >)
+	// Create the Asset List View
+	SAssignNew( ConstructedAssetListView, SListView< TSharedPtr<FAssetData> >)
 	.ItemHeight(30.f)
 	.ListItemsSource(&SelectedAssetDataArray)
 	.OnGenerateRow(this, &SAdvancedDeletionTab::OnGenerateRowForList);
 
 	// Convert the variable to a shared reference and return it
-	return AssetListView.ToSharedRef();
+	return ConstructedAssetListView.ToSharedRef();
 }
 
-void SAdvancedDeletionTab::RefreshAssetListView() const
-{
-	// Original Code ...
-	// // Check if the Asset List View Widget is valid
-	// if( ConstructedAssetListView.IsValid() )
-	// {
-	// 	// Rebuild the Asset List
-	// 	ConstructedAssetListView->RebuildList();
-	// }
 
+// Refresh the asset list view
+void SAdvancedDeletionTab::RefreshAssetListView()
+{
+	// Empty the array
+	CheckBoxesArray.Empty();
+	AssetDataToDelete.Empty();
 	
 	// Check if the Asset List View Widget is valid
-	if( AssetListView.IsValid() )
+	if( ConstructedAssetListView.IsValid() )
 	{
 		// Rebuild the Asset List
-		AssetListView->RebuildList();
+		ConstructedAssetListView->RebuildList();
 	}
-}
-
-
-// This function updates the asset list view as the search box is changed
-void SAdvancedDeletionTab::OnSearchBoxChanged(const FText& Text)
-{
-	// Get the text from the search box
-	const FString SearchText = Text.ToString();
-	DebugHeader::Print( SearchText, FColor::Cyan );
-	
-	
-	// If the search text is empty, and the SelectedAssetDataArray does not match StoredAssetDataArray, then set the SelectedAssetDataArray to the StoredAssetDataArray
-	if( SearchText.IsEmpty() )
-	{
-		if ( SelectedAssetDataArray.Num() < StoredAssetDataArray.Num() )
-		{
-			SelectedAssetDataArray = StoredAssetDataArray;
-			RefreshAssetListView();
-		}
-		return;
-	}
-	
-	// Create a new array to store the filtered assets
-	TArray< TSharedPtr<FAssetData> > FilteredAssetDataArray;
-	
-	// Loop through the SelectedAssetDataArray and add the assets that match the search text to the FilteredAssetDataArray
-	
-	for ( const TSharedPtr<FAssetData> AssetData : StoredAssetDataArray )
-	{
-		if ( AssetData->AssetName.ToString().Contains( SearchText ) )
-		{
-			FilteredAssetDataArray.Add( AssetData );
-			DebugHeader::Print( *AssetData->AssetName.ToString(), FColor::Red );
-		}
-	}
-	
-	// Check if the FilteredAssetDataArray is empty
-	if ( FilteredAssetDataArray.Num() < 1 )
-	{
-		// If it is empty, then set the SelectedAssetDataArray to the StoredAssetDataArray
-		// SelectedAssetDataArray = StoredAssetDataArray;
-		SelectedAssetDataArray.Empty();
-	}
-	else
-	{
-		// If it is not empty, then set the SelectedAssetDataArray to the FilteredAssetDataArray
-		// SelectedAssetDataArray.Empty();
-		SelectedAssetDataArray = FilteredAssetDataArray;
-	}
-	
-	//Refresh the asset list view
-	RefreshAssetListView();
-}
-
-
-FReply SAdvancedDeletionTab::OnDeleteAllButtonClicked()
-{
-	DebugHeader::ShowNotifyInfo(TEXT("OnDeleteAllButtonClicked"));
-	return FReply::Handled();
-}
-
-FReply SAdvancedDeletionTab::OnSelectAllButtonClicked()
-{
-	DebugHeader::ShowNotifyInfo(TEXT("OnSelectAllButtonClicked"));
-	return FReply::Handled();
-}
-
-FReply SAdvancedDeletionTab::OnDeselectAllButtonClicked()
-{
-	DebugHeader::ShowNotifyInfo(TEXT("OnDeselectAllButtonClicked"));
-	return FReply::Handled();
 }
 
 
@@ -350,7 +250,7 @@ TSharedRef<ITableRow> SAdvancedDeletionTab::OnGenerateRowForList(TSharedPtr<FAss
 	FSlateFontInfo AssetNameFont = FCoreStyle::Get().GetFontStyle("BoldFont");
 	AssetNameFont.Size = 12;
 	
-	const FLinearColor& DeleteButtonColor = FLinearColor(0.3f, 0.8f, 0.3f, 1.f);
+	// const FLinearColor& DeleteButtonColor = FLinearColor(0.3f, 0.8f, 0.3f, 1.f);
 	// const FLinearColor& DeleteButtonColor = FLinearColor(0.10616f, 0.48777f, 0.10616f, 1.f);
 	
 	// Create a new row widget, and return it
@@ -424,7 +324,7 @@ TSharedRef<ITableRow> SAdvancedDeletionTab::OnGenerateRowForList(TSharedPtr<FAss
 
 
 /* Settings for Checkbox widget */
-TSharedRef<SCheckBox> SAdvancedDeletionTab::ConstructCheckBox(const TSharedPtr<FAssetData> AssetData) const
+TSharedRef<SCheckBox> SAdvancedDeletionTab::ConstructCheckBox(const TSharedPtr<FAssetData> AssetData)
 {
 	// Create a new checkbox widget, and return it
 	TSharedRef<SCheckBox> ConstructedCheckBoxWidget = SNew(SCheckBox)
@@ -436,19 +336,29 @@ TSharedRef<SCheckBox> SAdvancedDeletionTab::ConstructCheckBox(const TSharedPtr<F
 	
 	;
 
+	// Add the checkbox widget to the CheckBoxesArray
+	CheckBoxesArray.Add(ConstructedCheckBoxWidget);
+
 	return ConstructedCheckBoxWidget;
 }
 
 
-void SAdvancedDeletionTab::OnAssetCheckBoxStateChanged(ECheckBoxState NewState, TSharedPtr<FAssetData> AssetData) const
+void SAdvancedDeletionTab::OnAssetCheckBoxStateChanged(ECheckBoxState NewState, TSharedPtr<FAssetData> AssetData)
 {
+	
 	switch (NewState) {
 		case ECheckBoxState::Unchecked:
-			DebugHeader::Print( FString::Printf(TEXT("%s is unchecked!"), *AssetData->AssetName.ToString()), FColor::Red );
+			// Check if the asset is in the array, if so remove it
+			if ( AssetDataToDelete.Contains(AssetData) )
+			{
+				// Remove the asset from the array
+				AssetDataToDelete.Remove(AssetData);
+			}
 			
 			break;
 		case ECheckBoxState::Checked:
-			DebugHeader::Print( FString::Printf(TEXT("%s is checked!"), *AssetData->AssetName.ToString()), FColor::Green );
+			// Add the AssetData to the AssetDataToDelete array
+			AssetDataToDelete.AddUnique( AssetData );
 			
 			break;
 		case ECheckBoxState::Undetermined:
@@ -530,7 +440,7 @@ TSharedRef<SButton> SAdvancedDeletionTab::ConstructButtonWithIcon(const FString 
 FReply SAdvancedDeletionTab::OnDeleteButtonClicked( TSharedPtr<FAssetData> AssetData )
 {
 	/* Load Editor Extension Module */
-	FUEditorExtensionModule& EditorExtensionModule =
+	const FUEditorExtensionModule& EditorExtensionModule =
 		FModuleManager::LoadModuleChecked<FUEditorExtensionModule>( TEXT("UEditorExtension") );
 	
 	// DebugHeader::Print( FString::Printf(TEXT("Delete button clicked! %s"), *AssetData->AssetName.ToString()), FColor::Green );
@@ -558,6 +468,150 @@ FReply SAdvancedDeletionTab::OnDeleteButtonClicked( TSharedPtr<FAssetData> Asset
 		RefreshAssetListView();
 	}
 	
+	
+	return FReply::Handled();
+}
+
+#pragma endregion
+
+
+#pragma region TabBottomButtons
+
+// This function updates the asset list view as the search box is changed
+void SAdvancedDeletionTab::OnSearchBoxChanged(const FText& Text)
+{
+	// Get the text from the search box
+	const FString SearchText = Text.ToString();
+	DebugHeader::Print( SearchText, FColor::Cyan );
+	
+	
+	// If the search text is empty, and the SelectedAssetDataArray does not match StoredAssetDataArray, then set the SelectedAssetDataArray to the StoredAssetDataArray
+	if( SearchText.IsEmpty() )
+	{
+		if ( SelectedAssetDataArray.Num() < StoredAssetDataArray.Num() )
+		{
+			SelectedAssetDataArray = StoredAssetDataArray;
+			RefreshAssetListView();
+		}
+		return;
+	}
+	
+	// Create a new array to store the filtered assets
+	TArray< TSharedPtr<FAssetData> > FilteredAssetDataArray;
+	
+	// Loop through the SelectedAssetDataArray and add the assets that match the search text to the FilteredAssetDataArray
+	
+	for ( const TSharedPtr<FAssetData> AssetData : StoredAssetDataArray )
+	{
+		if ( AssetData->AssetName.ToString().Contains( SearchText ) )
+		{
+			FilteredAssetDataArray.Add( AssetData );
+			DebugHeader::Print( *AssetData->AssetName.ToString(), FColor::Red );
+		}
+	}
+	
+	// Check if the FilteredAssetDataArray is empty
+	if ( FilteredAssetDataArray.Num() < 1 )
+	{
+		// If it is empty, then set the SelectedAssetDataArray to the StoredAssetDataArray
+		// SelectedAssetDataArray = StoredAssetDataArray;
+		SelectedAssetDataArray.Empty();
+	}
+	else
+	{
+		// If it is not empty, then set the SelectedAssetDataArray to the FilteredAssetDataArray
+		// SelectedAssetDataArray.Empty();
+		SelectedAssetDataArray = FilteredAssetDataArray;
+	}
+	
+	//Refresh the asset list view
+	RefreshAssetListView();
+}
+
+// Delete the selected assets in the asset list view
+FReply SAdvancedDeletionTab::OnDeleteAllButtonClicked()
+{
+	// If the SelectedAssetDataArray is empty, then notify the user and return
+	if( AssetDataToDelete.Num() == 0 )
+	{
+		DebugHeader::ShowMsgDialog( EAppMsgType::Ok,TEXT("No assets selected!") );
+		return FReply::Handled();
+	}
+
+	// Convert the SelectedAssetDataArray to an array of FAssetData
+	TArray<FAssetData> AssetDataArrayToDelete;
+	for ( const TSharedPtr<FAssetData> AssetData : AssetDataToDelete )
+	{
+		AssetDataArrayToDelete.Add( *AssetData.Get() );
+	}
+	
+	// Load the Editor Extension Module
+	FUEditorExtensionModule& EditorExtensionModule =
+		FModuleManager::LoadModuleChecked<FUEditorExtensionModule>( TEXT("UEditorExtension") );
+
+	// Pass data to the DeleteMultipleAssets function in the EditorExtensionModule
+	const bool bAssetsDelete = EditorExtensionModule.DeleteMultipleAssets( AssetDataArrayToDelete );
+
+	// Check if the assets were deleted
+	if ( bAssetsDelete )
+	{
+		// Remove the deleted assets from the SelectedAssetDataArray
+		for(const TSharedPtr<FAssetData>& DeletedAssetData : AssetDataToDelete)
+		{
+			// First, check if the Asset is in the Asset List
+			if( SelectedAssetDataArray.Contains( DeletedAssetData ) )
+			{
+				// Then, we need to remove the asset from the Asset List
+				SelectedAssetDataArray.Remove( DeletedAssetData );
+				StoredAssetDataArray.Empty();
+				StoredAssetDataArray = SelectedAssetDataArray;
+			}
+		}
+
+		// Refresh the list
+		RefreshAssetListView();
+	}
+
+	
+	return FReply::Handled();
+}
+
+// Select all assets in the asset list view
+FReply SAdvancedDeletionTab::OnSelectAllButtonClicked()
+{
+	if(CheckBoxesArray.Num() == 0) return FReply::Handled();
+
+	// loop through CheckBoxesArray and set the IsChecked state to Checked
+	for ( const TSharedPtr<SCheckBox>& CheckBox : CheckBoxesArray )
+	{
+		// if the CheckBox is checked, then continue to the next CheckBox
+		if ( CheckBox->IsChecked() ) continue;
+		
+		// Set the IsChecked state to Checked
+		CheckBox->SetIsChecked( ECheckBoxState::Unchecked );
+		CheckBox->ToggleCheckedState();
+		
+	}
+	
+	return FReply::Handled();
+}
+
+// Deselect all assets in the asset list view
+FReply SAdvancedDeletionTab::OnDeselectAllButtonClicked()
+{
+	if(CheckBoxesArray.Num() == 0) return FReply::Handled();
+
+	// loop through CheckBoxesArray and set the IsChecked state to Unchecked
+	for ( const TSharedPtr<SCheckBox>& CheckBox : CheckBoxesArray )
+	{
+		// if the CheckBox is unchecked, then continue to the next CheckBox
+		if ( !CheckBox->IsChecked() ) continue;
+		
+		// Set the IsChecked state to Unchecked
+		CheckBox->SetIsChecked( ECheckBoxState::Checked );
+		CheckBox->ToggleCheckedState();
+		
+	}
 	
 	return FReply::Handled();
 }

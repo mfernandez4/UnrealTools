@@ -43,29 +43,61 @@ private:
 	//An example property to set in Construct
 	TAttribute<FName> WidgetName;
 	
+	// The list of assets that is displayed in the list view for the Advanced Deletion tab
+	TArray< TSharedPtr<FAssetData> > SelectedAssetDataArray;
+
+	// Refreshes the list of assets to display in the list view for the Advanced Deletion tab
+	void RefreshAssetListView();
+
+	// Array of assets selected to delete
+	TArray< TSharedPtr<FAssetData> > AssetDataToDelete;
+	
 protected:
 	
 private:
 
-	TSharedPtr< SListView< TSharedPtr< FAssetData> > > AssetListView;
-	
-	// The list of assets that is displayed in the list view for the Advanced Deletion tab
-	TArray< TSharedPtr<FAssetData> > SelectedAssetDataArray;
+#pragma region RowWidgetForAssetListView
 
-	// Stores the Original list of assets to display in the list view used for filtering
-	TArray< TSharedPtr<FAssetData> > StoredAssetDataArray;
+	// Reference to the list view for the Advanced Deletion tab
+	TSharedPtr< SListView< TSharedPtr< FAssetData> > > ConstructedAssetListView;
 
 	// Constructs the list view for the Advanced Deletion tab which holds the assets to delete
 	TSharedRef< SListView< TSharedPtr <FAssetData> > > ConstructAssetListView();
+	
+	// The list view widget for the Advanced Deletion tab. Will display the assets held within the selected folder.
+	TSharedRef<ITableRow> OnGenerateRowForList(
+		TSharedPtr<FAssetData> AssetData, // The asset data for the asset to display
+		const TSharedRef<STableViewBase>& OwnerTable // The widget that owns the row
+	);
 
-	// Reference to the list view for the Advanced Deletion tab
-	TSharedPtr< SListView< TSharedPtr <FAssetData> > > ConstructedAssetListView;
+	// Constructs a checkbox widget for the given asset data
+	TSharedRef<SCheckBox> ConstructCheckBox( const TSharedPtr<FAssetData> AssetData );
+
+	// Called when the user clicks on the checkbox for an asset
+	void OnAssetCheckBoxStateChanged( ECheckBoxState NewState, TSharedPtr<FAssetData> AssetData );
+	
+	// Constructs a text block widget for the given asset data.
+	TSharedRef<STextBlock> ConstructTextForRowWidget( const FString TextContent, const FSlateFontInfo& TextFont ) const;
+
+	/** Constructs a button widget with an option for an EditorGlyph. Returns a TSharedRef<SButton> */
+	TSharedRef<SButton> ConstructButtonWithIcon( const FString ButtonText, const FText EditorGlyph, const FButtonStyle& InButtonStyle, const FOnClicked& OnClickedDelegate ) const;
+	
+	// Called when the user clicks on the "Delete" button
+	FReply OnDeleteButtonClicked( TSharedPtr<FAssetData> AssetData );
+
+#pragma endregion
+
+
+#pragma region TabBottomButtons
+	
+	// Stores the Original list of assets to display in the list view used for filtering
+	TArray< TSharedPtr<FAssetData> > StoredAssetDataArray;
+
+	// Array of checkboxes of assets selected to delete
+	TArray< TSharedPtr<SCheckBox> > CheckBoxesArray;
 
 	// Reference to the editable text box for the Advanced Deletion tab
 	TSharedPtr< SEditableTextBox > AssetSearchBox;
-
-	// Refreshes the list of assets to display in the list view for the Advanced Deletion tab
-	void RefreshAssetListView() const;
 
 	// Updates the asset list view as the search box is changed
 	void OnSearchBoxChanged(const FText& Text);
@@ -79,34 +111,9 @@ private:
 	// Called when the user clicks on the "Delete All" button
 	FReply OnDeselectAllButtonClicked(  );
 
-
-
-#pragma region RowWidgetForAssetListView
-	
-	// The list view widget for the Advanced Deletion tab. Will display the assets held within the selected folder.
-	TSharedRef<ITableRow> OnGenerateRowForList(
-		TSharedPtr<FAssetData> AssetData, // The asset data for the asset to display
-		const TSharedRef<STableViewBase>& OwnerTable // The widget that owns the row
-	);
-
-	// Constructs a checkbox widget for the given asset data
-	TSharedRef<SCheckBox> ConstructCheckBox( const TSharedPtr<FAssetData> AssetData ) const;
-
-	// Called when the user clicks on the checkbox for an asset
-	void OnAssetCheckBoxStateChanged( ECheckBoxState NewState, TSharedPtr<FAssetData> AssetData ) const;
-	
-	// Constructs a text block widget for the given asset data.
-	TSharedRef<STextBlock> ConstructTextForRowWidget( const FString TextContent, const FSlateFontInfo& TextFont ) const;
-
-	/** Constructs a button widget with an option for an EditorGlyph. Returns a TSharedRef<SButton> */
-	TSharedRef<SButton> ConstructButtonWithIcon( const FString ButtonText, const FText EditorGlyph, const FButtonStyle& InButtonStyle, const FOnClicked& OnClickedDelegate ) const;
-	
-	// Called when the user clicks on the "Delete" button
-	FReply OnDeleteButtonClicked( TSharedPtr<FAssetData> AssetData );
-
 #pragma endregion
-	
 
+	
 private:
 	
 	//	/**
@@ -132,4 +139,5 @@ private:
 
 	// Getter function for EmbossedText font style
 	FORCEINLINE FSlateFontInfo GetEmbossedTextFont() const { return FCoreStyle::Get().GetFontStyle( FName("EmbossedText") ); }
+	
 };
