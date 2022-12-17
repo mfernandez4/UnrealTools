@@ -108,7 +108,19 @@ public:
 
 	void RegisterCommands();
 
+	/**
+	 * Deletes a single asset.
+	 * @param AssetToDelete The asset to delete.
+	 * @returns True if the asset was deleted, false otherwise.
+	 */
 	bool DeleteSingleAsset( const FAssetData AssetToDelete ) const;
+
+	/**
+	 * Deletes all assets in the array.
+	 * @param AssetsToDeleteArray The assets to delete.
+	 * @returns True if all assets were deleted, false otherwise.
+	 */
+	bool DeleteMultipleAssets(const TArray<FAssetData> AssetsToDeleteArray);
 
 #pragma endregion
 	

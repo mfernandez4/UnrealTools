@@ -573,7 +573,19 @@ void FUEditorExtensionModule::RegisterCommands()
 
 bool FUEditorExtensionModule::DeleteSingleAsset( const FAssetData AssetToDelete ) const
 {
+	FixUpRedirectors();
 	if( ObjectTools::DeleteAssets(TArray<FAssetData>{ AssetToDelete.GetAsset() }) > 0 )
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool FUEditorExtensionModule::DeleteMultipleAssets(const TArray<FAssetData> AssetsToDeleteArray)
+{
+	FixUpRedirectors();
+	if( ObjectTools::DeleteAssets(AssetsToDeleteArray) > 0 )
 	{
 		return true;
 	}
