@@ -23,7 +23,7 @@ class SAdvancedDeletionTab : public SCompoundWidget
 		SLATE_ARGUMENT(FName, WidgetTitle)
 		
 		/** The data to display in the advanced deletion tab window. */
-		SLATE_ARGUMENT( TArray< TSharedPtr<FAssetData> >, StoredAssetsDataArray )
+		SLATE_ARGUMENT( TArray< TSharedPtr< FAssetData>>, StoredAssetsDataArray )
 	
 	SLATE_END_ARGS()
 
@@ -43,26 +43,54 @@ private:
 	//An example property to set in Construct
 	TAttribute<FName> WidgetName;
 	
+	// The list of assets passed to the Advanced Deletion tab
+	TArray< TSharedPtr<FAssetData> > SelectedAssetData;
+
 	// The list of assets that is displayed in the list view for the Advanced Deletion tab
-	TArray< TSharedPtr<FAssetData> > SelectedAssetDataArray;
-
-	// Refreshes the list of assets to display in the list view for the Advanced Deletion tab
-	void RefreshAssetListView();
-
+	TArray< TSharedPtr<FAssetData> > DisplayedAssetData;
+	
+	// Stores the saved list of assets to display in the list view used for filtering
+	TArray< TSharedPtr<FAssetData> > StoredAssetDataArray;
+	
 	// Array of assets selected to delete
 	TArray< TSharedPtr<FAssetData> > AssetDataToDelete;
-	
-protected:
-	
-private:
 
-#pragma region RowWidgetForAssetListView
-
+	// Array of checkboxes of assets selected to delete
+	TArray< TSharedPtr<SCheckBox> > CheckBoxesArray;
+	
 	// Reference to the list view for the Advanced Deletion tab
 	TSharedPtr< SListView< TSharedPtr< FAssetData> > > ConstructedAssetListView;
 
 	// Constructs the list view for the Advanced Deletion tab which holds the assets to delete
 	TSharedRef< SListView< TSharedPtr <FAssetData> > > ConstructAssetListView();
+
+	// Refreshes the list of assets to display in the list view for the Advanced Deletion tab
+	void RefreshAssetListView();
+
+protected:
+	
+private:
+
+#pragma region DropDownConditional
+
+	// Creates the drop down menu for the conditional drop down
+	TSharedRef< SComboBox< TSharedPtr< FString> > > ConstructDropDown();
+
+	// The list of options for the drop down menu
+	TArray< TSharedPtr< FString > > DropDownOptions;
+
+	// Function to generate the drop down menu
+	TSharedRef< SWidget > OnGenerateWidgetContent(TSharedPtr< FString > InItem);
+
+	// Delegate for when an item is selected in the drop down menu
+	void OnDrowDownSelectionChanged(TSharedPtr< FString > Selection, ESelectInfo::Type SelectInfo);
+
+	// The selected item in the drop down menu
+	TSharedPtr< STextBlock > DisplayedDropDownOption;
+
+#pragma endregion
+
+#pragma region RowWidgetForAssetListView
 	
 	// The list view widget for the Advanced Deletion tab. Will display the assets held within the selected folder.
 	TSharedRef<ITableRow> OnGenerateRowForList(
@@ -89,12 +117,6 @@ private:
 
 
 #pragma region TabBottomButtons
-	
-	// Stores the Original list of assets to display in the list view used for filtering
-	TArray< TSharedPtr<FAssetData> > StoredAssetDataArray;
-
-	// Array of checkboxes of assets selected to delete
-	TArray< TSharedPtr<SCheckBox> > CheckBoxesArray;
 
 	// Reference to the editable text box for the Advanced Deletion tab
 	TSharedPtr< SEditableTextBox > AssetSearchBox;

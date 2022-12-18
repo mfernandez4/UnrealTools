@@ -13,7 +13,7 @@
 
 
 #define LOCTEXT_NAMESPACE "SAdvancedDeletionTab"
-
+#define ListAllAssets "List All Available Assets"
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
@@ -80,14 +80,17 @@ void SAdvancedDeletionTab::Construct(const FArguments& InArgs)
 	bCanSupportFocus = true; // This is required for keyboard focus to be passed to this widget
 
 	// Capture the Asset Data from the selected folder. This is the data we will display in the list view.
-	SelectedAssetDataArray = InArgs._StoredAssetsDataArray;
+	SelectedAssetData = InArgs._StoredAssetsDataArray;
 
 	// Store the SelectedAssetDataArray to use for searching
-	StoredAssetDataArray = SelectedAssetDataArray;
+	StoredAssetDataArray = SelectedAssetData;
 
 	// Empty arrays to get rid of any old data
 	AssetDataToDelete.Empty();
 	CheckBoxesArray.Empty();
+
+	// Create the conditional dropdown options
+	DropDownOptions.Add(MakeShared<FString>( ListAllAssets ));
 	
 	// Create Font Info for the text block
 	FSlateFontInfo TitleTextFont = GetEmbossedTextFont();
@@ -114,19 +117,52 @@ void SAdvancedDeletionTab::Construct(const FArguments& InArgs)
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		[
-			SNew(SHorizontalBox)
+			SNew(SBox)
+			.HeightOverride(30.f)
+			[
+				SNew(SBorder)
+				// .BorderImage(FAppStyle::Get().GetBrush("Border"))
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				[
+					SNew(SHorizontalBox)
+
+					// Condition Drop Down
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						ConstructDropDown()
+					]
+
+					// Refresh Asset List Button
+					// + SHorizontalBox::Slot()
+					// .AutoWidth()
+					// [
+					// 	
+					// ]
+				]
+			]
 		]
 		
 		// The asset list
 		+ SVerticalBox::Slot()
 		.VAlign(VAlign_Fill)
 		.HAlign(HAlign_Fill)
-		.Padding( 5.f, 0.f)
 		[
-			SNew(SScrollBox)
-			+ SScrollBox::Slot()
+			SNew(SBox)
 			[
-				ConstructAssetListView()
+				SNew(SBorder)
+				.BorderImage(FAppStyle::Get().GetBrush("Border"))
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				// .BorderBackgroundColor(FColor::Green)
+				[
+					SNew(SScrollBox)
+					+ SScrollBox::Slot()
+					[
+						ConstructAssetListView()
+					]
+				]
 			]
 		]
 
@@ -178,7 +214,7 @@ void SAdvancedDeletionTab::Construct(const FArguments& InArgs)
 					[
 					ConstructButtonWithIcon( 
 					"Select All",
-					FEditorFontGlyphs::Times,
+					FEditorFontGlyphs::Check_Circle,
 					DeleteButtonStyle,
 					FOnClicked::CreateSP(this, &SAdvancedDeletionTab::OnSelectAllButtonClicked)
 					)
@@ -192,7 +228,7 @@ void SAdvancedDeletionTab::Construct(const FArguments& InArgs)
 					[
 					ConstructButtonWithIcon( 
 					"Deselect All",
-					FEditorFontGlyphs::Times,
+					FEditorFontGlyphs::Circle_O,
 					DeleteButtonStyle,
 					FOnClicked::CreateSP(this, &SAdvancedDeletionTab::OnDeselectAllButtonClicked)
 					)
@@ -210,7 +246,7 @@ TSharedRef<SListView<TSharedPtr<FAssetData>>> SAdvancedDeletionTab::ConstructAss
 	// Create the Asset List View
 	SAssignNew( ConstructedAssetListView, SListView< TSharedPtr<FAssetData> >)
 	.ItemHeight(30.f)
-	.ListItemsSource(&SelectedAssetDataArray)
+	.ListItemsSource(&SelectedAssetData)
 	.OnGenerateRow(this, &SAdvancedDeletionTab::OnGenerateRowForList);
 
 	// Convert the variable to a shared reference and return it
@@ -232,6 +268,43 @@ void SAdvancedDeletionTab::RefreshAssetListView()
 		ConstructedAssetListView->RebuildList();
 	}
 }
+
+
+#pragma region DropDownConditional
+
+TSharedRef<SComboBox<TSharedPtr<FString>>> SAdvancedDeletionTab::ConstructDropDown()
+{
+	TSharedRef<SComboBox<TSharedPtr<FString>>> ConstructedComboBox =
+		SNew(SComboBox<TSharedPtr<FString>>)
+		.OptionsSource(&DropDownOptions)
+		.OnGenerateWidget(this, &SAdvancedDeletionTab::OnGenerateWidgetContent)
+		.OnSelectionChanged(this, &SAdvancedDeletionTab::OnDrowDownSelectionChanged)
+		[
+			SAssignNew( DisplayedDropDownOption, STextBlock )
+			.Text(FText::FromString( TEXT("List Assets Options") ))
+			// .Text(this, &SAdvancedDeletionTab::GetDrowDownSelectedOption)
+		];
+	;
+
+	
+	return ConstructedComboBox;
+}
+
+TSharedRef<SWidget> SAdvancedDeletionTab::OnGenerateWidgetContent(TSharedPtr<FString> InItem)
+{
+	TSharedRef<STextBlock> ConstructedComboText = SNew(STextBlock)
+		.Text(FText::FromString( *InItem.Get() ));
+	return ConstructedComboText;
+}
+
+void SAdvancedDeletionTab::OnDrowDownSelectionChanged(TSharedPtr<FString> Selection, ESelectInfo::Type SelectInfo)
+{
+	DebugHeader::Print( *Selection.Get(), FColor::Cyan );
+
+	DisplayedDropDownOption->SetText( FText::FromString( *Selection.Get() ));
+}
+
+#pragma endregion
 
 
 #pragma region RowWidgetForAssetListView
@@ -457,11 +530,11 @@ FReply SAdvancedDeletionTab::OnDeleteButtonClicked( TSharedPtr<FAssetData> Asset
 		/* Update the Asset List in the SList Widget */
 
 		// First, check if the Asset is in the Asset List
-		if( SelectedAssetDataArray.Contains( AssetData ) )
+		if( SelectedAssetData.Contains( AssetData ) )
 		{
 			// Then, we need to remove the asset from the Asset List
-			SelectedAssetDataArray.Remove( AssetData );
-			StoredAssetDataArray = SelectedAssetDataArray;
+			SelectedAssetData.Remove( AssetData );
+			StoredAssetDataArray = SelectedAssetData;
 		}
 
 		// Refresh the list
@@ -488,9 +561,9 @@ void SAdvancedDeletionTab::OnSearchBoxChanged(const FText& Text)
 	// If the search text is empty, and the SelectedAssetDataArray does not match StoredAssetDataArray, then set the SelectedAssetDataArray to the StoredAssetDataArray
 	if( SearchText.IsEmpty() )
 	{
-		if ( SelectedAssetDataArray.Num() < StoredAssetDataArray.Num() )
+		if ( SelectedAssetData.Num() < StoredAssetDataArray.Num() )
 		{
-			SelectedAssetDataArray = StoredAssetDataArray;
+			SelectedAssetData = StoredAssetDataArray;
 			RefreshAssetListView();
 		}
 		return;
@@ -515,13 +588,13 @@ void SAdvancedDeletionTab::OnSearchBoxChanged(const FText& Text)
 	{
 		// If it is empty, then set the SelectedAssetDataArray to the StoredAssetDataArray
 		// SelectedAssetDataArray = StoredAssetDataArray;
-		SelectedAssetDataArray.Empty();
+		SelectedAssetData.Empty();
 	}
 	else
 	{
 		// If it is not empty, then set the SelectedAssetDataArray to the FilteredAssetDataArray
 		// SelectedAssetDataArray.Empty();
-		SelectedAssetDataArray = FilteredAssetDataArray;
+		SelectedAssetData = FilteredAssetDataArray;
 	}
 	
 	//Refresh the asset list view
@@ -559,12 +632,12 @@ FReply SAdvancedDeletionTab::OnDeleteAllButtonClicked()
 		for(const TSharedPtr<FAssetData>& DeletedAssetData : AssetDataToDelete)
 		{
 			// First, check if the Asset is in the Asset List
-			if( SelectedAssetDataArray.Contains( DeletedAssetData ) )
+			if( SelectedAssetData.Contains( DeletedAssetData ) )
 			{
 				// Then, we need to remove the asset from the Asset List
-				SelectedAssetDataArray.Remove( DeletedAssetData );
+				SelectedAssetData.Remove( DeletedAssetData );
 				StoredAssetDataArray.Empty();
-				StoredAssetDataArray = SelectedAssetDataArray;
+				StoredAssetDataArray = SelectedAssetData;
 			}
 		}
 
