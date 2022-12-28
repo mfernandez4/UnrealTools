@@ -572,11 +572,11 @@ FReply SAdvancedDeletionTab::OnDeleteButtonClicked( TSharedPtr<FAssetData> Asset
 		/* Update the Asset List in the SList Widget */
 
 		// First, check if the Asset is in the Asset List
-		if( StoredAssetsData.Contains( AssetData ) )
+		if( DisplayedAssetData.Contains( AssetData ) )
 		{
 			// Then, we need to remove the asset from the Asset List
-			StoredAssetsData.Remove( AssetData );
-			HoldAssetsDataArray = StoredAssetsData;
+			DisplayedAssetData.Remove( AssetData );
+			HoldAssetsDataArray = DisplayedAssetData;
 		}
 
 		// Refresh the list
@@ -597,15 +597,14 @@ void SAdvancedDeletionTab::OnSearchBoxChanged(const FText& Text)
 {
 	// Get the text from the search box
 	const FString SearchText = Text.ToString();
-	DebugHeader::Print( SearchText, FColor::Cyan );
 	
 	
 	// If the search text is empty, and the SelectedAssetDataArray does not match StoredAssetDataArray, then set the SelectedAssetDataArray to the StoredAssetDataArray
 	if( SearchText.IsEmpty() )
 	{
-		if ( StoredAssetsData.Num() < HoldAssetsDataArray.Num() )
+		if ( DisplayedAssetData.Num() < HoldAssetsDataArray.Num() )
 		{
-			StoredAssetsData = HoldAssetsDataArray;
+			DisplayedAssetData = HoldAssetsDataArray;
 			RefreshAssetListView();
 		}
 		return;
@@ -615,13 +614,11 @@ void SAdvancedDeletionTab::OnSearchBoxChanged(const FText& Text)
 	TArray< TSharedPtr<FAssetData> > FilteredAssetDataArray;
 	
 	// Loop through the SelectedAssetDataArray and add the assets that match the search text to the FilteredAssetDataArray
-	
-	for ( const TSharedPtr<FAssetData> AssetData : HoldAssetsDataArray )
+	for ( const TSharedPtr<FAssetData> AssetData : DisplayedAssetData )
 	{
 		if ( AssetData->AssetName.ToString().Contains( SearchText ) )
 		{
 			FilteredAssetDataArray.Add( AssetData );
-			DebugHeader::Print( *AssetData->AssetName.ToString(), FColor::Red );
 		}
 	}
 	
@@ -630,13 +627,13 @@ void SAdvancedDeletionTab::OnSearchBoxChanged(const FText& Text)
 	{
 		// If it is empty, then set the SelectedAssetDataArray to the StoredAssetDataArray
 		// SelectedAssetDataArray = StoredAssetDataArray;
-		StoredAssetsData.Empty();
+		DisplayedAssetData.Empty();
 	}
 	else
 	{
 		// If it is not empty, then set the SelectedAssetDataArray to the FilteredAssetDataArray
 		// SelectedAssetDataArray.Empty();
-		StoredAssetsData = FilteredAssetDataArray;
+		DisplayedAssetData = FilteredAssetDataArray;
 	}
 	
 	//Refresh the asset list view
@@ -674,12 +671,12 @@ FReply SAdvancedDeletionTab::OnDeleteAllButtonClicked()
 		for(const TSharedPtr<FAssetData>& DeletedAssetData : AssetDataToDelete)
 		{
 			// First, check if the Asset is in the Asset List
-			if( StoredAssetsData.Contains( DeletedAssetData ) )
+			if( DisplayedAssetData.Contains( DeletedAssetData ) )
 			{
 				// Then, we need to remove the asset from the Asset List
-				StoredAssetsData.Remove( DeletedAssetData );
+				DisplayedAssetData.Remove( DeletedAssetData );
 				HoldAssetsDataArray.Empty();
-				HoldAssetsDataArray = StoredAssetsData;
+				HoldAssetsDataArray = DisplayedAssetData;
 			}
 		}
 
