@@ -122,6 +122,13 @@ public:
 	 */
 	bool DeleteMultipleAssets(const TArray<FAssetData> AssetsToDeleteArray);
 
+	/**
+	 * Filters through Assets Data Array and finds all assets that are not referenced by any other asset.
+	 * @param AssetDataToFilter The assets to filter through.
+	 * @param OutUnusedAssets The Output array of assets that are not referenced by any other asset or are unused.
+	 */
+	void ListUnusedAssetsFilter( const TArray< TSharedPtr<FAssetData> >& AssetDataToFilter, TArray< TSharedPtr<FAssetData> >& OutUnusedAssets );
+
 #pragma endregion
 	
 };

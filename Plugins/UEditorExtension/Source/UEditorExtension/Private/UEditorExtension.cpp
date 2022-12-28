@@ -539,7 +539,6 @@ TArray<TSharedPtr<FAssetData>> FUEditorExtensionModule::GetAssetDataFromSelected
 		{
 			continue;
 		}
-
 		
 		// convert ObjectPath to PackageName. ObjectPath is deprecated behavior.
 		const FString& TempAssetPathName = FPackageName::ObjectPathToPackageName(AssetPathName);
@@ -591,6 +590,29 @@ bool FUEditorExtensionModule::DeleteMultipleAssets(const TArray<FAssetData> Asse
 	}
 
 	return false;
+}
+
+void FUEditorExtensionModule::ListUnusedAssetsFilter( const TArray<TSharedPtr<FAssetData>>& AssetDataToFilter,
+	TArray<TSharedPtr<FAssetData>>& OutUnusedAssets )
+{
+	for( const TSharedPtr<FAssetData>& AssetData : AssetDataToFilter )
+	{
+		// Make sure OutUnusedAssets is empty
+		OutUnusedAssets.Empty();
+
+		// fix up redirectors
+		FixUpRedirectors();
+		
+		// check if the asset is used by getting the asset's references
+		TArray<FString> AssetReferences =
+			UEditorAssetLibrary::FindPackageReferencersForAsset( AssetData->GetObjectPathString() );
+
+		// if the asset is not used, add it to the unused assets array
+		if( AssetReferences.Num() == 0 )
+		{
+			OutUnusedAssets.Add(AssetData);
+		}
+	}
 }
 
 
