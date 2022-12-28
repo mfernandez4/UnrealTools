@@ -5,9 +5,20 @@
 #include "Widgets/SCompoundWidget.h"
 
 /**
- * 
+ * This Selection Type is used to select a single item from a list of items.
  */
+UENUM(BlueprintType)
+enum class ESelectionType : uint8 {
+	EST_ListAll UMETA(DisplayName = "List All Assets"),
+	EST_ListUnused UMETA(DisplayName = "List Unused Assets"),
 
+	EST_MAX UMETA(DisplayName = "DefaultMax")
+};
+
+
+/**
+ * The AdvancedDeletionTab is a tab-able window that allows the user to delete assets from the project.
+ */
 class SAdvancedDeletionTab : public SCompoundWidget
 {
 	/**
@@ -44,13 +55,13 @@ private:
 	TAttribute<FName> WidgetName;
 	
 	// The list of assets passed to the Advanced Deletion tab
-	TArray< TSharedPtr<FAssetData> > SelectedAssetData;
+	TArray< TSharedPtr<FAssetData> > StoredAssetsData;
 
 	// The list of assets that is displayed in the list view for the Advanced Deletion tab
 	TArray< TSharedPtr<FAssetData> > DisplayedAssetData;
 	
 	// Stores the saved list of assets to display in the list view used for filtering
-	TArray< TSharedPtr<FAssetData> > StoredAssetDataArray;
+	TArray< TSharedPtr<FAssetData> > HoldAssetsDataArray;
 	
 	// Array of assets selected to delete
 	TArray< TSharedPtr<FAssetData> > AssetDataToDelete;
