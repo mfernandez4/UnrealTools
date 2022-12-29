@@ -15,6 +15,7 @@
 #define LOCTEXT_NAMESPACE "SAdvancedDeletionTab"
 #define ListAll TEXT("List All Available Assets")
 #define ListUnused TEXT("List Unused Assets")
+#define ListDuplicates TEXT("List Duplicate Assets")
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
@@ -96,6 +97,7 @@ void SAdvancedDeletionTab::Construct(const FArguments& InArgs)
 	// Create the conditional dropdown options
 	DropDownOptions.Add(MakeShared<FString>( ListAll ));
 	DropDownOptions.Add(MakeShared<FString>( ListUnused ));
+	DropDownOptions.Add(MakeShared<FString>( ListDuplicates ));
 	
 	// Create Font Info for the text block
 	FSlateFontInfo TitleTextFont = GetEmbossedTextFont();
@@ -112,7 +114,7 @@ void SAdvancedDeletionTab::Construct(const FArguments& InArgs)
 		.Padding(5.0f)
 		[
 			SNew(STextBlock)
-			.Text(FText::FromString(TEXT("Advanced Deletion")))
+			.Text(FText::FromString(TEXT("Delete Assets Window")))
 			.Font(TitleTextFont)
 			.Justification(ETextJustify::Center)
 			.ColorAndOpacity(FColor::White)
@@ -312,30 +314,44 @@ void SAdvancedDeletionTab::OnDrowDownSelectionChanged(TSharedPtr<FString> Select
 	FUEditorExtensionModule& EditorExtensionModule =
 		FModuleManager::LoadModuleChecked<FUEditorExtensionModule>( TEXT("UEditorExtension") );
 
+	// Create a variable to store the selected option using an enum value
 	ESelectionType SelectionType = ESelectionType::EST_MAX;
+	
 	// Check the selected option
 	if ( *Selection.Get() == ListAll ) {
 		SelectionType = ESelectionType::EST_ListAll;
-	} else if ( *Selection.Get() == ListUnused ) {
+	}
+	else if ( *Selection.Get() == ListUnused ) {
 		SelectionType = ESelectionType::EST_ListUnused;
+	}
+	else if ( *Selection.Get() == ListDuplicates )
+	{
+		SelectionType = ESelectionType::EST_ListDuplicates;
 	}
 
 	
 	// Switch statement to determine which option was selected
 	// Pass data to filter based on selected option
 	switch ( SelectionType ) {
-	case ESelectionType::EST_ListAll:
+		case ESelectionType::EST_ListAll:
 			// List all stored assets data
-			DisplayedAssetData = StoredAssetsData;
+			DisplayedAssetData = HoldAssetsDataArray;
 			RefreshAssetListView();
 			break;
 
-	case ESelectionType::EST_ListUnused:
+		case ESelectionType::EST_ListUnused:
 			// List all unused assets data
-			EditorExtensionModule.ListUnusedAssetsFilter( StoredAssetsData, DisplayedAssetData );
+			EditorExtensionModule.ListUnusedAssetsFilter( HoldAssetsDataArray, DisplayedAssetData );
 			RefreshAssetListView();
 			
 			break;
+
+		case ESelectionType::EST_ListDuplicates:
+			// List all duplicate assets data
+			EditorExtensionModule.ListDuplicateAssetsFilter( HoldAssetsDataArray, DisplayedAssetData);
+			RefreshAssetListView();
+
+		break;
 		
 		default:
 			// Prompt the user to select an option
@@ -359,11 +375,14 @@ TSharedRef<ITableRow> SAdvancedDeletionTab::OnGenerateRowForList(TSharedPtr<FAss
 	
 	const FString& DisplayAssetName = AssetData->AssetName.ToString();
 	const FString& DisplayClassName = AssetData->GetClass()->GetName();
+	const FString& DisplayPackagePath = FPackageName::GetLongPackagePath(AssetData->GetObjectPathString());
 
 	FSlateFontInfo AssetClassNameFont = GetEmbossedTextFont();
-	AssetClassNameFont.Size = 12;
+	AssetClassNameFont.Size = 10;
 	FSlateFontInfo AssetNameFont = FCoreStyle::Get().GetFontStyle("BoldFont");
 	AssetNameFont.Size = 12;
+	FSlateFontInfo AssetPathFont = GetEmbossedTextFont();
+	AssetPathFont.Size = 8;
 	
 	// const FLinearColor& DeleteButtonColor = FLinearColor(0.3f, 0.8f, 0.3f, 1.f);
 	// const FLinearColor& DeleteButtonColor = FLinearColor(0.10616f, 0.48777f, 0.10616f, 1.f);
@@ -393,26 +412,66 @@ TSharedRef<ITableRow> SAdvancedDeletionTab::OnGenerateRowForList(TSharedPtr<FAss
 			
 			// Display the asset class name
 			+ SHorizontalBox::Slot()
-			.HAlign(HAlign_Center)
-			.VAlign(VAlign_Center)
-			.Padding( 15, 0 )
+			.HAlign(HAlign_Fill)
+			// .VAlign(VAlign_Center)
+			.VAlign(VAlign_Fill)
+			.Padding( 5, 0, 10, 0 )
 			// .AutoWidth()
 			// .MaxWidth(150)
 			.FillWidth(.25f)
 			[
-				ConstructTextForRowWidget( DisplayClassName, AssetClassNameFont )
+				SNew(SBorder)
+				.BorderImage(FAppStyle::Get().GetBrush("Border"))
+				.HAlign(HAlign_Left)
+				.VAlign(VAlign_Center)
+				.Padding( 5.f, 0.f )
+				[
+					// Create text block to display the asset class name
+					ConstructTextForRowWidget( DisplayClassName, AssetClassNameFont )
+				]
 			]
 
 			
 			// Display the asset name
 			+ SHorizontalBox::Slot()
-			.HAlign(HAlign_Left)
-			.VAlign(VAlign_Center)
-			.Padding( 15, 0 )
-			// .FillWidth(.25f)
+			.HAlign(HAlign_Fill)
+			// .VAlign(VAlign_Center)
+			.VAlign(VAlign_Fill)
+			.Padding( 0, 0, 10, 0 )
+			.FillWidth(1.f)
 			[
-				// Create a new text block widget, with the asset name
-				ConstructTextForRowWidget( DisplayAssetName, AssetNameFont )
+				SNew(SBorder)
+				.BorderImage(FAppStyle::Get().GetBrush("Border"))
+				.HAlign(HAlign_Left)
+				.VAlign(VAlign_Center)
+				.Padding( 5.f, 0.f )
+				[
+					// Create a new text block widget, with the asset name
+					ConstructTextForRowWidget( DisplayAssetName, AssetNameFont )
+				]
+			]
+
+			// Display the asset name
+			+ SHorizontalBox::Slot()
+			.HAlign(HAlign_Fill)
+			.VAlign(VAlign_Fill)
+			.FillWidth(1.f)
+			.Padding( 0, 0, 5, 0 )
+			[
+				SNew(SBorder)
+				.BorderImage(FAppStyle::Get().GetBrush("Border"))
+				.HAlign(HAlign_Left)
+				.VAlign(VAlign_Center)
+				.Padding( 5.f, 0.f )
+				[
+					// Create a new text block widget for the asset package path
+					SNew(STextBlock)
+					.Text(FText::FromString(DisplayPackagePath))
+					.Font(AssetPathFont)
+					.ColorAndOpacity(FColor::Silver)
+					.Justification(ETextJustify::Center)
+					.SimpleTextMode(true)
+				]
 			]
 
 			
@@ -422,7 +481,7 @@ TSharedRef<ITableRow> SAdvancedDeletionTab::OnGenerateRowForList(TSharedPtr<FAss
 			.HAlign(HAlign_Center)
 			.AutoWidth()
 			.MaxWidth(450.f)
-			.Padding( 10, 0 )
+			.Padding( 5,0, 10, 0 )
 			[
 				ConstructButtonWithIcon( 
 				"Delete",
@@ -675,8 +734,18 @@ FReply SAdvancedDeletionTab::OnDeleteAllButtonClicked()
 			{
 				// Then, we need to remove the asset from the Asset List
 				DisplayedAssetData.Remove( DeletedAssetData );
+
+				// Empty the HoldAssetsDataArray, to make sure we don't hold any assets that were deleted
 				HoldAssetsDataArray.Empty();
+				// Then, we need to add the assets from the DisplayedAssetData to the HoldAssetsDataArray
 				HoldAssetsDataArray = DisplayedAssetData;
+			}
+
+			// Second, check if the Asset is in the StoredAssetsData Array
+			if( StoredAssetsData.Contains( DeletedAssetData ) )
+			{
+				// Then, we need to remove the asset from the StoredAssetsData Array
+				StoredAssetsData.Remove( DeletedAssetData );
 			}
 		}
 

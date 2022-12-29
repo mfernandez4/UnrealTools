@@ -11,6 +11,7 @@ UENUM(BlueprintType)
 enum class ESelectionType : uint8 {
 	EST_ListAll UMETA(DisplayName = "List All Assets"),
 	EST_ListUnused UMETA(DisplayName = "List Unused Assets"),
+	EST_ListDuplicates UMETA(DisplayName = "List Duplicate Assets"),
 
 	EST_MAX UMETA(DisplayName = "DefaultMax")
 };
