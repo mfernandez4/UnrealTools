@@ -129,6 +129,9 @@ public:
 	 */
 	void ListUnusedAssetsFilter( const TArray< TSharedPtr<FAssetData> >& AssetDataToFilter, TArray< TSharedPtr<FAssetData> >& OutUnusedAssets );
 
+	// Function to list assets of the same name in the project
+	void ListDuplicateAssetsFilter( const TArray< TSharedPtr<FAssetData> >& AssetDataToFilter, TArray< TSharedPtr<FAssetData> >& OutDuplicateAssets );
+
 #pragma endregion
 	
 };

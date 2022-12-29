@@ -501,7 +501,10 @@ void FUEditorExtensionModule::RegisterDeleteAssetsWindow()
 
 // Spawn the new dock-able tab window
 void FUEditorExtensionModule::OnOpenDeleteWindowClicked() const
-{	
+{
+	// fix up redirectors
+	FixUpRedirectors();
+	
 	// Create a new dock-able window
 	FGlobalTabmanager::Get()->TryInvokeTab(FName("DeleteAssetsWindow"));
 }
@@ -595,17 +598,18 @@ bool FUEditorExtensionModule::DeleteMultipleAssets(const TArray<FAssetData> Asse
 void FUEditorExtensionModule::ListUnusedAssetsFilter( const TArray<TSharedPtr<FAssetData>>& AssetDataToFilter,
 	TArray<TSharedPtr<FAssetData>>& OutUnusedAssets )
 {
+	
+	// Make sure OutUnusedAssets is empty
+	OutUnusedAssets.Empty();
+	
 	for( const TSharedPtr<FAssetData>& AssetData : AssetDataToFilter )
 	{
-		// Make sure OutUnusedAssets is empty
-		OutUnusedAssets.Empty();
-
-		// fix up redirectors
-		FixUpRedirectors();
 		
 		// check if the asset is used by getting the asset's references
+			// UEditorAssetLibrary::FindPackageReferencersForAsset( FPackageName::ObjectPathToPackageName(AssetData->GetObjectPathString()) );
+		// AssetData->GetPackage()->GetPathName()
 		TArray<FString> AssetReferences =
-			UEditorAssetLibrary::FindPackageReferencersForAsset( AssetData->GetObjectPathString() );
+			UEditorAssetLibrary::FindPackageReferencersForAsset( AssetData->PackagePath.ToString() );
 
 		// if the asset is not used, add it to the unused assets array
 		if( AssetReferences.Num() == 0 )
@@ -613,6 +617,50 @@ void FUEditorExtensionModule::ListUnusedAssetsFilter( const TArray<TSharedPtr<FA
 			OutUnusedAssets.Add(AssetData);
 		}
 	}
+}
+
+void FUEditorExtensionModule::ListDuplicateAssetsFilter(const TArray<TSharedPtr<FAssetData>>& AssetDataToFilter,
+	TArray< TSharedPtr<FAssetData> >& OutDuplicateAssets )
+{
+	// Make sure OutDuplicateAssets is empty
+	OutDuplicateAssets.Empty();
+
+	// TMultimap for finding duplicate assets
+	TMultiMap<FString, TSharedPtr<FAssetData>> DuplicateAssetsMap;
+
+	// loop through the asset data to filter and emplace the asset data into the map
+	for( const TSharedPtr<FAssetData>& AssetData : AssetDataToFilter )
+	{
+		// add the asset data to the duplicate assets map
+		DuplicateAssetsMap.Emplace( AssetData->AssetName.ToString(), AssetData );
+	}
+
+	// loop through again and check if the asset data is a duplicate
+	for( const TSharedPtr<FAssetData>& AssetData : AssetDataToFilter )
+	{
+		TArray< TSharedPtr< FAssetData>> OutAssetDataArray;
+		// Check if the asset data is a duplicate
+		DuplicateAssetsMap.MultiFind( AssetData->AssetName.ToString(), OutAssetDataArray );
+
+		if ( OutAssetDataArray.Num() <= 1 ) continue;
+		
+		for ( const TSharedPtr<FAssetData>& DuplicateAssetData : OutAssetDataArray )
+		{
+			// check if DuplicateAssetData is valid
+			if( !DuplicateAssetData.IsValid() ) continue;
+			OutDuplicateAssets.AddUnique(AssetData);
+		}
+	}
+
+	// define the compare function for sorting the duplicate assets by asset name
+	auto CompareFunction = [](const TSharedPtr<FAssetData>& A, const TSharedPtr<FAssetData>& B)
+	{
+		return A->AssetName.ToString() < B->AssetName.ToString();
+	};
+	
+	// sort the duplicate assets array, by asset name
+	OutDuplicateAssets.Sort(CompareFunction);
+	
 }
 
 
