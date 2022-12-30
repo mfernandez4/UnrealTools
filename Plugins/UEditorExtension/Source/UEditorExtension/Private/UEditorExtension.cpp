@@ -47,8 +47,10 @@ void FUEditorExtensionModule::ShutdownModule()
 
 void FUEditorExtensionModule::InitializeToolBarMenuExtension()
 {
+	// The UI command list responsible for handling actions for the toolbar items you'll be extending the menu with
 	PluginCommands = MakeShareable(new FUICommandList);
 
+	// Register the commands for the toolbar
 	PluginCommands->MapAction(
 		FToolbarCommands::Get().PluginAction,
 		FExecuteAction::CreateRaw(this, &FUEditorExtensionModule::OnOpenDeleteWindowClicked),
@@ -90,20 +92,17 @@ void FUEditorExtensionModule::InitializeToolBarMenuExtension()
 
 void FUEditorExtensionModule::AddToolbarExtension(FToolBarBuilder& ToolBarBuilder) const
 {
+	// Add a separator before our new toolbar extension
 	ToolBarBuilder.AddSeparator(FName("UEditorExtension"));
-	// {
-	// 	ToolBarBuilder.AddToolBarButton(
-	// 		FUIAction( FExecuteAction::CreateRaw(this, &FUEditorExtensionModule::OnOpenDeleteWindowClicked) ),
-	// 		FName("UEditorExtensionButton"),
-	// 		LOCTEXT("ToolbarButton", "UEditorExtension"),
-	// 		LOCTEXT("ToolbarButtonTooltip", "Open Plugin Window"),
-	// 		// FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.Tabs.Details")
-	// 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.Tabs.ContentBrowser")
-	// 		// EUserInterfaceActionType::Button
-	// 	);
-	// }
 
-	ToolBarBuilder.AddToolBarButton(FToolbarCommands::Get().PluginAction);
+	// Add a new toolbar button to the toolbar, opens the plugin window
+	ToolBarBuilder.AddToolBarButton(
+		FToolbarCommands::Get().PluginAction,
+		FName("UEditorExtensionButton"),
+		LOCTEXT("ToolbarButton", "UEditorExtension"),
+		LOCTEXT("ToolbarButtonTooltip", "Open Plugin Window"),
+		FToolbarCommands::Get().PluginAction->GetIcon()
+		);
 }
 
 void FUEditorExtensionModule::OpenPluginWindow()
@@ -576,7 +575,8 @@ void FUEditorExtensionModule::RegisterDeleteAssetsWindow()
 		FOnSpawnTab::CreateRaw(this, &FUEditorExtensionModule::OnSpawnDeleteAssetsWindow) )
 		.SetDisplayName( LOCTEXT("DeleteAssetsWindow", "Delete Assets Window") )
 		.SetTooltipText( LOCTEXT("DeleteAssetsWindowTooltip", "Open the Delete Assets Window") )
-		.SetIcon( FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.Tabs.ContentBrowser") )
+		// .SetIcon( FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.Tabs.ContentBrowser") )
+		.SetIcon( FToolbarCommands::Get().PluginAction->GetIcon() )
 		;
 }
 
@@ -743,6 +743,17 @@ void FUEditorExtensionModule::ListDuplicateAssetsFilter(const TArray<TSharedPtr<
 	// sort the duplicate assets array, by asset name
 	OutDuplicateAssets.Sort(CompareFunction);
 	
+}
+
+void FUEditorExtensionModule::SyncCBToClickedAssetForAssetList(const FString& AssetPathToSync)
+{
+	// create the TArray to pass to the SyncContentBrowserToAssets function
+	TArray< FString > AssetsPathsToSync;
+	// add the asset path to the array
+	AssetsPathsToSync.Add(AssetPathToSync);
+
+	// sync the content browser to the asset path
+	UEditorAssetLibrary::SyncBrowserToObjects(AssetsPathsToSync);
 }
 
 

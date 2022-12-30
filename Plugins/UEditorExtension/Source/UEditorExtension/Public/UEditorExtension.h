@@ -152,7 +152,18 @@ public:
 	void ListUnusedAssetsFilter( const TArray< TSharedPtr<FAssetData> >& AssetDataToFilter, TArray< TSharedPtr<FAssetData> >& OutUnusedAssets );
 
 	// Function to list assets of the same name in the project
+	/**
+	 * Filters through Assets Data Array and finds all assets that contain the same name as any other asset.
+	 * @param AssetDataToFilter The assets to filter through.
+	 * @param OutDuplicateAssets The Output array of assets that contain the same name as any other asset.
+	 */
 	void ListDuplicateAssetsFilter( const TArray< TSharedPtr<FAssetData> >& AssetDataToFilter, TArray< TSharedPtr<FAssetData> >& OutDuplicateAssets );
+
+	/**
+	 * Syncs the Content Browser to the clicked asset.
+	 * @param AssetPathToSync The asset to sync the Content Browser to.
+	 */
+	void SyncCBToClickedAssetForAssetList( const FString& AssetPathToSync );
 
 #pragma endregion
 	
