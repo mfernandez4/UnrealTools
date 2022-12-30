@@ -289,6 +289,7 @@ TSharedRef<SComboBox<TSharedPtr<FString>>> SAdvancedDeletionTab::ConstructDropDo
 		.OptionsSource(&DropDownOptions)
 		.OnGenerateWidget(this, &SAdvancedDeletionTab::OnGenerateWidgetContent)
 		.OnSelectionChanged(this, &SAdvancedDeletionTab::OnDropDownSelectionChanged)
+		.ToolTipText( LOCTEXT("DeleteWindowDropDownToolTip", "Select an option to filter the assets list.") )
 		[
 			SAssignNew( DisplayedDropDownOption, STextBlock )
 			.Text(FText::FromString( TEXT("List Assets Options") ))

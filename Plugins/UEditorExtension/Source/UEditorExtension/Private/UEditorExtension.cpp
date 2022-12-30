@@ -10,7 +10,7 @@
 // #include "EditorUtilityLibrary.h"
 #include "LevelEditor.h"
 #include "ObjectTools.h"
-#include "SlateWidgets/ToolbarStyle.h"
+#include "SlateWidgets/UEditorExtensionStyle.h"
 #include "SlateWidgets/ToolbarCommands.h"
 #include "SlateWidgets/AdvancedDeletionWidget.h"
 
@@ -20,9 +20,9 @@
 void FUEditorExtensionModule::StartupModule()
 {
 	
-	FToolbarStyle::Initialize();
+	FUEditorExtensionStyle::Initialize();
 	
-	FToolbarStyle::ReloadTextures();
+	FUEditorExtensionStyle::ReloadTextures();
 	
 	FToolbarCommands::Register();
 	
@@ -40,6 +40,7 @@ void FUEditorExtensionModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
+	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner( FName("DeleteAssetsWindow") );
 	
 }
 
