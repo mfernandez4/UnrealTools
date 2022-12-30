@@ -4,14 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Framework/Commands/Commands.h"
-#include "SlateWidgets/ToolbarStyle.h"
+#include "SlateWidgets/UEditorExtensionStyle.h"
 
 class FToolbarCommands : public TCommands<FToolbarCommands>
 {
 public:
 
 	FToolbarCommands()
-		: TCommands<FToolbarCommands>(TEXT("Toolbar"), NSLOCTEXT("Contexts", "Toolbar", "Toolbar Plugin"), NAME_None, FToolbarStyle::GetStyleSetName())
+		: TCommands<FToolbarCommands>(TEXT("Toolbar"), NSLOCTEXT("Contexts", "Toolbar", "Toolbar Plugin"), NAME_None, FUEditorExtensionStyle::GetStyleSetName())
 	{
 	}
 

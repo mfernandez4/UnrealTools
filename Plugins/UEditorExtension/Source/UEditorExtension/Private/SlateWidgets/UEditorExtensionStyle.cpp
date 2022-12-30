@@ -1,14 +1,14 @@
 ﻿// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
-#include "SlateWidgets/ToolbarStyle.h"
+#include "SlateWidgets/UEditorExtensionStyle.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Styling/SlateStyleRegistry.h"
 #include "Slate/SlateGameResources.h"
 #include "Interfaces/IPluginManager.h"
 
-TSharedPtr< FSlateStyleSet > FToolbarStyle::StyleInstance = NULL;
+TSharedPtr< FSlateStyleSet > FUEditorExtensionStyle::StyleInstance = NULL;
 
-void FToolbarStyle::Initialize()
+void FUEditorExtensionStyle::Initialize()
 {
 	if (!StyleInstance.IsValid())
 	{
@@ -17,16 +17,16 @@ void FToolbarStyle::Initialize()
 	}
 }
 
-void FToolbarStyle::Shutdown()
+void FUEditorExtensionStyle::Shutdown()
 {
 	FSlateStyleRegistry::UnRegisterSlateStyle(*StyleInstance);
 	ensure(StyleInstance.IsUnique());
 	StyleInstance.Reset();
 }
 
-FName FToolbarStyle::GetStyleSetName()
+FName FUEditorExtensionStyle::GetStyleSetName()
 {
-	static FName StyleSetName(TEXT("ToolbarStyle"));
+	static FName StyleSetName(TEXT("UEditorExtensionStyle"));
 	return StyleSetName;
 }
 
@@ -42,9 +42,9 @@ const FVector2D Icon40x40(40.0f, 40.0f);
 const FVector2D Icon64x64(64.0f, 64.0f);
 const FVector2D Icon128x128(128.0f, 128.0f);
 
-TSharedRef< FSlateStyleSet > FToolbarStyle::Create()
+TSharedRef< FSlateStyleSet > FUEditorExtensionStyle::Create()
 {
-	TSharedRef< FSlateStyleSet > Style = MakeShareable(new FSlateStyleSet("ToolbarStyle"));
+	TSharedRef< FSlateStyleSet > Style = MakeShareable(new FSlateStyleSet("UEditorExtensionStyle"));
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin("UEditorExtension")->GetBaseDir() / TEXT("Resources"));
 
 	Style->Set("Toolbar.PluginAction", new IMAGE_BRUSH(TEXT("ButtonIcon_128"), Icon128x128));
@@ -58,7 +58,7 @@ TSharedRef< FSlateStyleSet > FToolbarStyle::Create()
 #undef TTF_FONT
 #undef OTF_FONT
 
-void FToolbarStyle::ReloadTextures()
+void FUEditorExtensionStyle::ReloadTextures()
 {
 	if (FSlateApplication::IsInitialized())
 	{
@@ -66,7 +66,7 @@ void FToolbarStyle::ReloadTextures()
 	}
 }
 
-const ISlateStyle& FToolbarStyle::Get()
+const ISlateStyle& FUEditorExtensionStyle::Get()
 {
 	return *StyleInstance;
 }
