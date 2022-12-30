@@ -7,9 +7,11 @@
 #include "ContentBrowserModule.h"
 #include "DebugHeader.h"
 #include "EditorAssetLibrary.h"
-// #include "EditorStyleSet.h"
 // #include "EditorUtilityLibrary.h"
+#include "LevelEditor.h"
 #include "ObjectTools.h"
+#include "SlateWidgets/ToolbarStyle.h"
+#include "SlateWidgets/ToolbarCommands.h"
 #include "SlateWidgets/AdvancedDeletionWidget.h"
 
 
@@ -17,11 +19,21 @@
 
 void FUEditorExtensionModule::StartupModule()
 {
+	
+	FToolbarStyle::Initialize();
+	
+	FToolbarStyle::ReloadTextures();
+	
+	FToolbarCommands::Register();
+	
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 	InitCBMenuExtension();
 
 	// Register Custom Slate Tab
 	RegisterDeleteAssetsWindow();
+
+	// Initialize the Toolbar Extension
+	InitializeToolBarMenuExtension();
 }
 
 void FUEditorExtensionModule::ShutdownModule()
@@ -31,6 +43,75 @@ void FUEditorExtensionModule::ShutdownModule()
 	
 }
 
+#pragma region ToolBarMenuExtension
+
+void FUEditorExtensionModule::InitializeToolBarMenuExtension()
+{
+	PluginCommands = MakeShareable(new FUICommandList);
+
+	PluginCommands->MapAction(
+		FToolbarCommands::Get().PluginAction,
+		FExecuteAction::CreateRaw(this, &FUEditorExtensionModule::OnOpenDeleteWindowClicked),
+		FCanExecuteAction());
+	
+	// Load the LevelEditor module
+	FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
+
+	// From the LevelEditor module, get the toolbar extender manager
+	const TSharedPtr<FExtensibilityManager> LevelEditorToolbarExtender =
+		LevelEditorModule.GetToolBarExtensibilityManager();
+
+	// Create a new extender for the toolbar
+	const TSharedPtr<FExtender> ToolbarExtender = MakeShareable(new FExtender);
+
+	// Add a new toolbar extension to the extender
+	// ToolbarExtender->AddToolBarExtension(
+	// 	"ProjectSettings",
+	// 	EExtensionHook::Before,
+	// 	TSharedPtr<FUICommandList>(),
+	// 	FToolBarExtensionDelegate::CreateRaw(this, &FUEditorExtensionModule::AddToolbarExtension)
+	// );
+
+	// Add a new toolbar extension to the extender
+	ToolbarExtender->AddToolBarExtension(
+		"ProjectSettings",
+		EExtensionHook::Before,
+		PluginCommands,
+		FToolBarExtensionDelegate::CreateRaw(this, &FUEditorExtensionModule::AddToolbarExtension)
+	);
+
+	// Add the extender to the extender manager
+	LevelEditorToolbarExtender->AddExtender(ToolbarExtender);
+	
+	
+	SelectedFolderPaths.Empty();
+	SelectedFolderPaths.Add("/Game/");
+}
+
+void FUEditorExtensionModule::AddToolbarExtension(FToolBarBuilder& ToolBarBuilder) const
+{
+	ToolBarBuilder.AddSeparator(FName("UEditorExtension"));
+	// {
+	// 	ToolBarBuilder.AddToolBarButton(
+	// 		FUIAction( FExecuteAction::CreateRaw(this, &FUEditorExtensionModule::OnOpenDeleteWindowClicked) ),
+	// 		FName("UEditorExtensionButton"),
+	// 		LOCTEXT("ToolbarButton", "UEditorExtension"),
+	// 		LOCTEXT("ToolbarButtonTooltip", "Open Plugin Window"),
+	// 		// FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.Tabs.Details")
+	// 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.Tabs.ContentBrowser")
+	// 		// EUserInterfaceActionType::Button
+	// 	);
+	// }
+
+	ToolBarBuilder.AddToolBarButton(FToolbarCommands::Get().PluginAction);
+}
+
+void FUEditorExtensionModule::OpenPluginWindow()
+{
+}
+
+
+#pragma endregion
 
 #pragma region ContentBrowserMenuExtension
 
@@ -510,8 +591,9 @@ void FUEditorExtensionModule::OnOpenDeleteWindowClicked() const
 }
 
 // UI for the new dock-able tab window
-TSharedRef<SDockTab> FUEditorExtensionModule::OnSpawnDeleteAssetsWindow(const FSpawnTabArgs& SpawnTabArgs) const
+TSharedRef<SDockTab> FUEditorExtensionModule::OnSpawnDeleteAssetsWindow(const FSpawnTabArgs& SpawnTabArgs)
 {
+	
 	// Create the tab
 	return
 	SNew(SDockTab).TabRole(ETabRole::NomadTab)

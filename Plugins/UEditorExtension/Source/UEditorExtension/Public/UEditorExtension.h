@@ -12,8 +12,30 @@ public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+	
 
 private:
+#pragma region ToolBarMenuExtension
+
+	void InitializeToolBarMenuExtension();
+	
+	/**
+	 * 
+	 */
+	void AddToolbarExtension(FToolBarBuilder& ToolBarBuilder) const;
+
+	/**
+	 * 
+	 */
+	void OpenPluginWindow();
+
+	/**
+	 * 
+	 */
+	TSharedPtr<class FUICommandList> PluginCommands;
+
+#pragma endregion
+
 #pragma region ContentBrowserMenuExtension
 
 	
@@ -95,7 +117,7 @@ private:
 
 	void RegisterDeleteAssetsWindow();
 
-	TSharedRef<SDockTab> OnSpawnDeleteAssetsWindow(const FSpawnTabArgs& SpawnTabArgs) const;
+	TSharedRef<SDockTab> OnSpawnDeleteAssetsWindow(const FSpawnTabArgs& SpawnTabArgs);
 
 	// Function will get AssetData from the Content Browser and pass it to the DeleteAssetsWindow
 	TArray< TSharedPtr<FAssetData> > GetAssetDataFromSelectedFolder() const;
