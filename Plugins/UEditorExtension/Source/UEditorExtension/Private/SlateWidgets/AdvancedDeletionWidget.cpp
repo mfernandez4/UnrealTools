@@ -8,6 +8,7 @@
 #include "UEditorExtension.h"
 
 #include "EditorFontGlyphs.h"
+#include "IDocumentation.h"
 #include "Styling/SlateStyleMacros.h"
 #include "Widgets/Layout/SScrollBox.h"
 
@@ -93,6 +94,7 @@ void SAdvancedDeletionTab::Construct(const FArguments& InArgs)
 	// Empty arrays to get rid of any old data
 	AssetDataToDelete.Empty();
 	CheckBoxesArray.Empty();
+	DropDownOptions.Empty();
 
 	// Create the conditional dropdown options
 	DropDownOptions.Add(MakeShared<FString>( ListAll ));
@@ -254,7 +256,8 @@ TSharedRef<SListView<TSharedPtr<FAssetData>>> SAdvancedDeletionTab::ConstructAss
 	SAssignNew( ConstructedAssetListView, SListView< TSharedPtr<FAssetData> >)
 	.ItemHeight( 30.f )
 	.ListItemsSource( &DisplayedAssetData )
-	.OnGenerateRow( this, &SAdvancedDeletionTab::OnGenerateRowForList );
+	.OnGenerateRow( this, &SAdvancedDeletionTab::OnGenerateRowForList )
+	.OnMouseButtonDoubleClick( this, &SAdvancedDeletionTab::OnAssetDoubleClicked );
 
 	// Convert the variable to a shared reference and return it
 	return ConstructedAssetListView.ToSharedRef();
@@ -285,7 +288,7 @@ TSharedRef<SComboBox<TSharedPtr<FString>>> SAdvancedDeletionTab::ConstructDropDo
 		SNew(SComboBox<TSharedPtr<FString>>)
 		.OptionsSource(&DropDownOptions)
 		.OnGenerateWidget(this, &SAdvancedDeletionTab::OnGenerateWidgetContent)
-		.OnSelectionChanged(this, &SAdvancedDeletionTab::OnDrowDownSelectionChanged)
+		.OnSelectionChanged(this, &SAdvancedDeletionTab::OnDropDownSelectionChanged)
 		[
 			SAssignNew( DisplayedDropDownOption, STextBlock )
 			.Text(FText::FromString( TEXT("List Assets Options") ))
@@ -304,7 +307,7 @@ TSharedRef<SWidget> SAdvancedDeletionTab::OnGenerateWidgetContent(TSharedPtr<FSt
 	return ConstructedComboText;
 }
 
-void SAdvancedDeletionTab::OnDrowDownSelectionChanged(TSharedPtr<FString> Selection, ESelectInfo::Type SelectInfo)
+void SAdvancedDeletionTab::OnDropDownSelectionChanged(TSharedPtr<FString> Selection, ESelectInfo::Type SelectInfo)
 {
 	DebugHeader::Print( *Selection.Get(), FColor::Cyan );
 
@@ -383,13 +386,23 @@ TSharedRef<ITableRow> SAdvancedDeletionTab::OnGenerateRowForList(TSharedPtr<FAss
 	AssetNameFont.Size = 12;
 	FSlateFontInfo AssetPathFont = GetEmbossedTextFont();
 	AssetPathFont.Size = 8;
-	
+
+	// create asset row tooltip
+	TSharedPtr<IToolTip> ToolTip = IDocumentation::Get()->CreateToolTip(
+		FText::Format( LOCTEXT("DeleteWindowListRowToolTip", "Double Click to Browse to {0} in Content Browser"),
+		FText::FromString( *DisplayAssetName )),
+		NULL,
+		TEXT("Shared/Types/AssetData"),
+		TEXT("AssetData")
+	);
+
 	// const FLinearColor& DeleteButtonColor = FLinearColor(0.3f, 0.8f, 0.3f, 1.f);
 	// const FLinearColor& DeleteButtonColor = FLinearColor(0.10616f, 0.48777f, 0.10616f, 1.f);
 	
 	// Create a new row widget, and return it
-	const TSharedRef< STableRow< TSharedPtr<FAssetData> > > ListViewRowWidget =
+	TSharedRef< STableRow< TSharedPtr<FAssetData> > > ListViewRowWidget =
 	 SNew( STableRow< TSharedPtr<FAssetData> >, OwnerTable )
+		.ToolTip( ToolTip )
 		.Padding( FMargin(5.f) )
 		[
 			// Create a horizontal box to hold the asset name and other options
@@ -494,6 +507,17 @@ TSharedRef<ITableRow> SAdvancedDeletionTab::OnGenerateRowForList(TSharedPtr<FAss
 			
 		];
 	return ListViewRowWidget;
+}
+
+// Function to sync the content browser to the clicked asset
+void SAdvancedDeletionTab::OnAssetDoubleClicked(TSharedPtr<FAssetData> ClickedAssetData) const
+{
+	// load UEditorExtensionModule
+	FUEditorExtensionModule& EditorExtensionModule =
+		FModuleManager::LoadModuleChecked<FUEditorExtensionModule>("UEditorExtension");
+
+	// sync content browser to the clicked asset
+	EditorExtensionModule.SyncCBToClickedAssetForAssetList( FPackageName::ObjectPathToPackageName(ClickedAssetData->GetObjectPathString()) );
 }
 
 

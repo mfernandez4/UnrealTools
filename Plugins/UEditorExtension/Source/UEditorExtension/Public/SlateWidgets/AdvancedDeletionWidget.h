@@ -72,7 +72,7 @@ private:
 	
 	// Reference to the list view for the Advanced Deletion tab
 	TSharedPtr< SListView< TSharedPtr< FAssetData> > > ConstructedAssetListView;
-
+	
 	// Constructs the list view for the Advanced Deletion tab which holds the assets to delete
 	TSharedRef< SListView< TSharedPtr <FAssetData> > > ConstructAssetListView();
 
@@ -95,7 +95,7 @@ private:
 	TSharedRef< SWidget > OnGenerateWidgetContent(TSharedPtr< FString > InItem);
 
 	// Delegate for when an item is selected in the drop down menu
-	void OnDrowDownSelectionChanged(TSharedPtr< FString > Selection, ESelectInfo::Type SelectInfo);
+	void OnDropDownSelectionChanged(TSharedPtr< FString > Selection, ESelectInfo::Type SelectInfo);
 
 	// The selected item in the drop down menu
 	TSharedPtr< STextBlock > DisplayedDropDownOption;
@@ -109,6 +109,8 @@ private:
 		TSharedPtr<FAssetData> AssetData, // The asset data for the asset to display
 		const TSharedRef<STableViewBase>& OwnerTable // The widget that owns the row
 	);
+
+	void OnAssetDoubleClicked(TSharedPtr<FAssetData> ClickedAssetData) const;
 
 	// Constructs a checkbox widget for the given asset data
 	TSharedRef<SCheckBox> ConstructCheckBox( const TSharedPtr<FAssetData> AssetData );
@@ -126,7 +128,6 @@ private:
 	FReply OnDeleteButtonClicked( TSharedPtr<FAssetData> AssetData );
 
 #pragma endregion
-
 
 #pragma region TabBottomButtons
 
