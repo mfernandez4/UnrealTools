@@ -38,7 +38,8 @@ public class UEditorExtension : ModuleRules
 				"ContentBrowser",
 				"EditorStyle",
 				"InputCore",
-				"SlateCore"
+				"SlateCore",
+				"LevelEditor",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -51,7 +52,12 @@ public class UEditorExtension : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+				"LevelEditor",
 				
+				"Projects",
+				// "InputCore",
+				// "UnrealEd",
+
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
