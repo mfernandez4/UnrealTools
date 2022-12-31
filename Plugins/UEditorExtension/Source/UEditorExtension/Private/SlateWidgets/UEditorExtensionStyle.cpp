@@ -29,12 +29,21 @@ FName FUEditorExtensionStyle::GetStyleSetName()
 	static FName StyleSetName(TEXT("UEditorExtensionStyle"));
 	return StyleSetName;
 }
-
+#ifndef IMAGE_BRUSH
 #define IMAGE_BRUSH( RelativePath, ... ) FSlateImageBrush( Style->RootToContentDir( RelativePath, TEXT(".png") ), __VA_ARGS__ )
+#endif
+#ifndef BOX_BRUSH
 #define BOX_BRUSH( RelativePath, ... ) FSlateBoxBrush( Style->RootToContentDir( RelativePath, TEXT(".png") ), __VA_ARGS__ )
+#endif
+#ifndef BORDER_BRUSH
 #define BORDER_BRUSH( RelativePath, ... ) FSlateBorderBrush( Style->RootToContentDir( RelativePath, TEXT(".png") ), __VA_ARGS__ )
+#endif
+#ifndef TTF_FONT
 #define TTF_FONT( RelativePath, ... ) FSlateFontInfo( Style->RootToContentDir( RelativePath, TEXT(".ttf") ), __VA_ARGS__ )
+#endif
+#ifndef OTF_FONT
 #define OTF_FONT( RelativePath, ... ) FSlateFontInfo( Style->RootToContentDir( RelativePath, TEXT(".otf") ), __VA_ARGS__ )
+#endif
 
 const FVector2D Icon16x16(16.0f, 16.0f);
 const FVector2D Icon20x20(20.0f, 20.0f);
@@ -47,7 +56,7 @@ TSharedRef< FSlateStyleSet > FUEditorExtensionStyle::Create()
 	TSharedRef< FSlateStyleSet > Style = MakeShareable(new FSlateStyleSet("UEditorExtensionStyle"));
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin("UEditorExtension")->GetBaseDir() / TEXT("Resources"));
 
-	Style->Set("Toolbar.PluginAction", new IMAGE_BRUSH(TEXT("ButtonIcon_128"), Icon128x128));
+	Style->Set("UEditorExtension.PluginAction", new IMAGE_BRUSH(TEXT("ButtonIcon_128"), Icon128x128));
 
 	return Style;
 }

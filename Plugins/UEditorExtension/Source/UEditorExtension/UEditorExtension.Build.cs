@@ -53,7 +53,6 @@ public class UEditorExtension : ModuleRules
 				"Slate",
 				"SlateCore",
 				"LevelEditor",
-				
 				"Projects",
 				// "InputCore",
 				// "UnrealEd",

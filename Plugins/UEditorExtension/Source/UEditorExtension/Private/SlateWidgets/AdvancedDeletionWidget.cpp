@@ -3,13 +3,13 @@
 
 #include "SlateWidgets/AdvancedDeletionWidget.h"
 #include <SlateOptMacros.h>
+// #include <Styling/SlateStyleMacros.h>
 
 #include "DebugHeader.h"
 #include "UEditorExtension.h"
 
 #include "EditorFontGlyphs.h"
 #include "IDocumentation.h"
-#include "Styling/SlateStyleMacros.h"
 #include "Widgets/Layout/SScrollBox.h"
 
 
@@ -27,7 +27,9 @@ SAdvancedDeletionTab::SAdvancedDeletionTab()
 	// initialize the DeleteButtonTextStyle
 	DeleteButtonTextStyle = FTextBlockStyle()
 		// .SetFont(FSlateFontInfo(FPaths::EngineContentDir() / TEXT("Slate/Fonts/Roboto-Bold.ttf"), 18)) // example of how to set the font
-		.SetFont(DEFAULT_FONT("Bold", 13))
+		// .SetFont(DEFAULT_FONT("Bold", 13))
+		.SetFont(FAppStyle::Get().GetFontStyle("FontBold"))
+		.SetFontSize(13)
 		.SetColorAndOpacity(FLinearColor::White)
 		.SetShadowOffset(FVector2D( 2, 2 ))
 		.SetShadowColorAndOpacity(FLinearColor::Black);

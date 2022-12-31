@@ -11,7 +11,7 @@ class FToolbarCommands : public TCommands<FToolbarCommands>
 public:
 
 	FToolbarCommands()
-		: TCommands<FToolbarCommands>(TEXT("Toolbar"), NSLOCTEXT("Contexts", "Toolbar", "Toolbar Plugin"), NAME_None, FUEditorExtensionStyle::GetStyleSetName())
+		: TCommands<FToolbarCommands>(TEXT("UEditorExtension"), NSLOCTEXT("Contexts", "UEditorExtension", "UEditorExtension Plugin"), NAME_None, FUEditorExtensionStyle::GetStyleSetName())
 	{
 	}
 

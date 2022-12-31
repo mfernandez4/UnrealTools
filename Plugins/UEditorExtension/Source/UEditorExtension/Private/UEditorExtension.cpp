@@ -7,7 +7,6 @@
 #include "ContentBrowserModule.h"
 #include "DebugHeader.h"
 #include "EditorAssetLibrary.h"
-// #include "EditorUtilityLibrary.h"
 #include "LevelEditor.h"
 #include "ObjectTools.h"
 #include "SlateWidgets/UEditorExtensionStyle.h"
@@ -21,9 +20,9 @@ void FUEditorExtensionModule::StartupModule()
 {
 	
 	FUEditorExtensionStyle::Initialize();
-	
+
 	FUEditorExtensionStyle::ReloadTextures();
-	
+
 	FToolbarCommands::Register();
 	
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
@@ -40,8 +39,8 @@ void FUEditorExtensionModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
-	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner( FName("DeleteAssetsWindow") );
-	
+	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner( FName("SweetDeleteAssetsWindow") );
+	FUEditorExtensionStyle::Shutdown();
 }
 
 #pragma region ToolBarMenuExtension
@@ -160,7 +159,8 @@ void FUEditorExtensionModule::InitCBMenuExtension()
 	// add the delegate to the array
 	ContentBrowserMenuExtender.Add( CustomCBMenuDelegate );
 	*/
-	
+	SelectedFolderPaths.Empty();
+	SelectedFolderPaths.Add("/Game/");
 }
 
 // Defines the position for inserting custom menu entry
@@ -572,7 +572,7 @@ void FUEditorExtensionModule::RegisterDeleteAssetsWindow()
 {
 	// Register the tab spawner
 	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(
-		FName("DeleteAssetsWindow"), // Tab ID
+		FName("SweetDeleteAssetsWindow"), // Tab ID
 		FOnSpawnTab::CreateRaw(this, &FUEditorExtensionModule::OnSpawnDeleteAssetsWindow) )
 		.SetDisplayName( LOCTEXT("DeleteAssetsWindow", "Delete Assets Window") )
 		.SetTooltipText( LOCTEXT("DeleteAssetsWindowTooltip", "Open the Delete Assets Window") )
@@ -588,7 +588,7 @@ void FUEditorExtensionModule::OnOpenDeleteWindowClicked() const
 	FixUpRedirectors();
 	
 	// Create a new dock-able window
-	FGlobalTabmanager::Get()->TryInvokeTab(FName("DeleteAssetsWindow"));
+	FGlobalTabmanager::Get()->TryInvokeTab(FName("SweetDeleteAssetsWindow"));
 }
 
 // UI for the new dock-able tab window
