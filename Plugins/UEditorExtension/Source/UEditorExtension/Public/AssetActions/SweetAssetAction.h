@@ -25,7 +25,7 @@
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "Sound/SoundCue.h"
 
-#include "QuickAssetAction.generated.h"
+#include "SweetAssetAction.generated.h"
 
 
 /**
