@@ -6,6 +6,7 @@
 #include "Slate/SlateGameResources.h"
 #include "Interfaces/IPluginManager.h"
 
+// Global pointer to the style set
 TSharedPtr< FSlateStyleSet > FUEditorExtensionStyle::StyleInstance = NULL;
 
 void FUEditorExtensionStyle::Initialize()
@@ -16,16 +17,16 @@ void FUEditorExtensionStyle::Initialize()
 		// Create the style set
 		StyleInstance = Create();
 		// Register the style set
-		FSlateStyleRegistry::RegisterSlateStyle(*StyleInstance);
+		FSlateStyleRegistry::RegisterSlateStyle( *StyleInstance );
 	}
 }
 
 void FUEditorExtensionStyle::Shutdown()
 {
 	// Unregister the style set
-	FSlateStyleRegistry::UnRegisterSlateStyle(*StyleInstance);
+	FSlateStyleRegistry::UnRegisterSlateStyle( *StyleInstance );
 	// Ensure there are no references to the style set
-	ensure(StyleInstance.IsUnique());
+	ensure( StyleInstance.IsUnique() );
 	// Reset the style set
 	StyleInstance.Reset();
 }
