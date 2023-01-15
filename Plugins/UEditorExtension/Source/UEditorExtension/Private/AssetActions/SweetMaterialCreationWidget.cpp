@@ -119,19 +119,34 @@ bool USweetMaterialCreationWidget::ProcessSelectedData(const TArray<FAssetData>&
 	return true;
 }
 
+// Check if material name is used, will return true if it is
 bool USweetMaterialCreationWidget::CheckIfMaterialNameIsUsed(const FString& FolderPathToCheck, const FString& MaterialNameToCheck)
 {
+	// get all the assets in the folder
 	TArray<FString> ExistingAssetPaths = UEditorAssetLibrary::ListAssets( FolderPathToCheck, false );
 
+	// loop through all the assets
 	for ( const FString& ExistingAssetPath : ExistingAssetPaths )
 	{
+		// get asset data from asset path
+		const FAssetData& AssetData = UEditorAssetLibrary::FindAssetData( ExistingAssetPath );
+		DebugHeader::Print( FString::Printf(TEXT("%s is of type %s"), *FPaths::GetBaseFilename(ExistingAssetPath), *AssetData.GetClass()->GetName()), FColor::Cyan );
+		
+		// check if existing asset isn't of type material
+		if ( !AssetData.GetClass()->IsChildOf( UMaterial::StaticClass()) ) continue;
+		
+		// get asset name
 		const FString ExistingAssetName = FPaths::GetBaseFilename(ExistingAssetPath);
+
+		// check if asset name is the same as the material name
 		if ( ExistingAssetName.Equals(MaterialNameToCheck) )
 		{
 			DebugHeader::ShowMsgDialog( EAppMsgType::Ok, FString::Printf(TEXT("Material name is already used.\n%s"), *ExistingAssetPath) );
 			return true;
 		}
 	}
+
+	// return false if material name is not used
 	return false;
 }
 
