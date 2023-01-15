@@ -57,6 +57,13 @@ private:
 	 */
 	bool CheckIfMaterialNameIsUsed( const FString& FolderPathToCheck, const FString& MaterialNameToCheck );
 
+	/**
+	 * Creates a new material from the selected textures.
+	 * @param NewMaterialName - The name of the material to create.
+	 * @param SaveMaterialPath - The path to save the material.
+	 */
+	UMaterial* CreateMaterial( const FString& NewMaterialName, const FString& SaveMaterialPath );
+
 #pragma endregion
 	
 };

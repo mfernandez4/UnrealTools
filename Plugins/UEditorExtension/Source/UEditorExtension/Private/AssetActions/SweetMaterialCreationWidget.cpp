@@ -2,9 +2,12 @@
 
 
 #include "AssetActions/SweetMaterialCreationWidget.h"
+
+#include "AssetToolsModule.h"
 #include "DebugHeader.h"
 #include "EditorAssetLibrary.h"
 #include "EditorUtilityLibrary.h"
+#include "Factories/MaterialFactoryNew.h"
 
 #pragma region MaterialCreationCore
 
@@ -30,7 +33,19 @@ void USweetMaterialCreationWidget::CreateMaterialFromSelectedTextures()
 	// check if user has selected any textures
 	if( !ProcessSelectedData( SelectedAssets, SelectedTextures, SelectedTexturePath) ) return;
 
+	// check if the material name is used
 	if ( CheckIfMaterialNameIsUsed( SelectedTexturePath, MaterialName ) ) return;
+
+	// create material
+	const UMaterial* NewlyCreatedMaterial = CreateMaterial( MaterialName, SelectedTexturePath );
+
+	// check if material was created
+	if ( !NewlyCreatedMaterial )
+	{
+		DebugHeader::ShowMsgDialog( EAppMsgType::Ok, TEXT("Failed to create material.") );
+		return;
+	}
+	
 	DebugHeader::Print( SelectedTexturePath, FColor::Cyan );
 	
 	
@@ -148,6 +163,27 @@ bool USweetMaterialCreationWidget::CheckIfMaterialNameIsUsed(const FString& Fold
 
 	// return false if material name is not used
 	return false;
+}
+
+UMaterial* USweetMaterialCreationWidget::CreateMaterial(const FString& NewMaterialName, const FString& SaveMaterialPath)
+{
+	// load asset tools module
+	const FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools"));
+
+	// create material factory
+	// const UMaterialFactoryNew* MaterialFactory = NewObject<UMaterialFactoryNew>();
+
+	// create material asset
+	UObject* NewMaterial = AssetToolsModule.Get().CreateAsset(
+		NewMaterialName, // name of the new asset
+		SaveMaterialPath, // path to save the asset
+		UMaterial::StaticClass(), // class of the asset, in this case UMaterial
+		// factory to use to create the asset.
+		// This is the class that provides the options for the asset creation.
+		// In this case, UMaterialFactoryNew.
+		NewObject<UMaterialFactoryNew>() );
+
+	return Cast<UMaterial>(NewMaterial);
 }
 
 #pragma endregion MaterialCreationCore
