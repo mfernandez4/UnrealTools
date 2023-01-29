@@ -238,7 +238,7 @@ void FUEditorExtensionModule::AddSweetMenuEntries( FMenuBuilder& MenuBuilder ) c
 		FText::FromString( TEXT("Open a window that allow a you to delete individual or groups of assets.") ), // The text that will appear in the tooltip
 		FSlateIcon(), // No icon, we can also use FSlateIcon(FEditorStyle::GetStyleSetName(), "ClassIcon.Actor")
 		FUIAction(FExecuteAction::CreateRaw( this, &FUEditorExtensionModule::OnOpenDeleteWindowClicked) ), // The function that will be called when the menu is clicked
-		FName("DeleteAssetsWindow")
+		FName("SweetDeleteAssetsWindow")
 	);
 }
 
@@ -574,8 +574,8 @@ void FUEditorExtensionModule::RegisterDeleteAssetsWindow()
 	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(
 		FName("SweetDeleteAssetsWindow"), // Tab ID
 		FOnSpawnTab::CreateRaw(this, &FUEditorExtensionModule::OnSpawnDeleteAssetsWindow) )
-		.SetDisplayName( LOCTEXT("DeleteAssetsWindow", "Delete Assets Window") )
-		.SetTooltipText( LOCTEXT("DeleteAssetsWindowTooltip", "Open the Delete Assets Window") )
+		.SetDisplayName( LOCTEXT("SweetDeleteAssetsWindow", "Delete Assets Window") )
+		.SetTooltipText( LOCTEXT("SweetDeleteAssetsWindowTooltip", "Open the Delete Assets Window") )
 		// .SetIcon( FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.Tabs.ContentBrowser") )
 		.SetIcon( FToolbarCommands::Get().PluginAction->GetIcon() )
 		;
@@ -594,6 +594,17 @@ void FUEditorExtensionModule::OnOpenDeleteWindowClicked() const
 // UI for the new dock-able tab window
 TSharedRef<SDockTab> FUEditorExtensionModule::OnSpawnDeleteAssetsWindow(const FSpawnTabArgs& SpawnTabArgs)
 {
+	// Check if the selected folder is empty
+	if( SelectedFolderPaths.Num() == 0 )
+	{
+		// Empty the selected folder paths array in case of bad data
+		SelectedFolderPaths.Empty();
+		// Add the root folder to the selected folder paths array
+		SelectedFolderPaths.Add("/Game/");
+	}
+	
+	// Get the assets from the selected folder
+	const TArray< TSharedPtr< FAssetData> > AssetDataArray = GetAssetDataFromSelectedFolder();
 	
 	// Create the tab
 	return
@@ -601,7 +612,7 @@ TSharedRef<SDockTab> FUEditorExtensionModule::OnSpawnDeleteAssetsWindow(const FS
 	[
 		SNew(SAdvancedDeletionTab)
 		// Pass the module pointer to the tab. This will show the assets from the selected folder.
-		.StoredAssetsDataArray( GetAssetDataFromSelectedFolder() )
+		.StoredAssetsDataArray( AssetDataArray )
 		.WidgetTitle( "Delete Assets Window" )
 	];
 }
