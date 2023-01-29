@@ -11,42 +11,6 @@
 #include "ObjectTools.h"
 
 
-/*
- void UQuickAssetAction::QuickCreateAsset(UClass* AssetClass, FString AssetName, FString PackagePath)
-{
-	if (AssetClass == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("AssetClass is nullptr"));
-		return;
-	}
-
-	if (AssetName.IsEmpty())
-	{
-		UE_LOG(LogTemp, Error, TEXT("AssetName is Empty"));
-		return;
-	}
-
-	if (PackagePath.IsEmpty())
-	{
-		UE_LOG(LogTemp, Error, TEXT("PackagePath is Empty"));
-		return;
-	}
-
-	FString PackageName = PackagePath + TEXT("/") + AssetName;
-	FString AssetPath = PackageName + TEXT(".") + AssetName;
-
-	UObject* Asset = UEditorUtilityLibrary::CreateAsset(AssetClass, FName(*PackageName), FName(*AssetName));
-	if (Asset == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Create Asset Failed"));
-		return;
-	}
-
-	UEditorAssetLibrary::SaveAsset(AssetPath);
-}
-*/
-
-
 #pragma region DuplicateAssets
 
 void UQuickAssetAction::DuplicateAssets(int32 NumOfDuplicates)
