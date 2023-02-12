@@ -34,9 +34,10 @@ public:
 	 */
 	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Material Creation", meta = ( EditCondition = "bCustomMaterialName" ) )
 	FString MaterialName = TEXT("M_");
-	
-protected:
 
+#pragma endregion
+
+#pragma region MaterialCreation
 private:
 
 	/**
@@ -65,5 +66,49 @@ private:
 	UMaterial* CreateMaterial( const FString& NewMaterialName, const FString& SaveMaterialPath );
 
 #pragma endregion
-	
+
+#pragma region TexureNameHelpers
+
+public:
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Texture Names" )
+	TArray<FString> BaseColorArray = {
+		TEXT("_basecolor"),
+		TEXT("_albedo"),
+		TEXT("_diffuse"),
+		TEXT("_diff"),
+		TEXT("_b"),
+		TEXT("_a"),
+		TEXT("_d"),
+	};
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Texture Names" )
+	TArray<FString> MetallicArray = {
+		TEXT("_metallic"),
+		TEXT("_metal"),
+		TEXT("_m"),
+	};
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Texture Names" )
+	TArray<FString> RoughnessArray = {
+		TEXT("_roughness"),
+		TEXT("_rough"),
+		TEXT("_r"),
+	};
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Texture Names" )
+	TArray<FString> NormalMapArray = {
+		TEXT("_normal"),
+		TEXT("_normalmap"),
+		TEXT("_n"),
+	};
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Texture Names" )
+	TArray<FString> AmbientOcclusionArray = {
+		TEXT("_ambientocclusion"),
+		TEXT("_ambient"),
+		TEXT("_occlusion"),
+		TEXT("_ao"),
+	};
+
+#pragma endregion TexureNameHelpers
 };
